@@ -1,0 +1,29 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  amount: 9.99
+  value: 9.99
+  name: MyString
+  parsed_name: MyString
+  description: MyString
+  date: 2025-06-28
+  transaction_date: 2025-06-28
+  transaction_type: MyString
+  category: one
+  subcategory: one
+  monthly_statement: one
+  raw_data: 
+
+two:
+  amount: 9.99
+  value: 9.99
+  name: MyString
+  parsed_name: MyString
+  description: MyString
+  date: 2025-06-28
+  transaction_date: 2025-06-28
+  transaction_type: MyString
+  category: two
+  subcategory: two
+  monthly_statement: two
+  raw_data: 
