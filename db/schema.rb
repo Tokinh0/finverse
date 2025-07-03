@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_06_30_223129) do
+ActiveRecord::Schema[7.1].define(version: 2025_07_02_010122) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -53,6 +53,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_30_223129) do
   create_table "keywords", force: :cascade do |t|
     t.string "name"
     t.string "parsed_name"
+    t.string "color_code"
+    t.string "description"
+    t.string "keyword_type"
     t.bigint "subcategory_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -78,6 +81,18 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_30_223129) do
     t.index ["category_id"], name: "index_subcategories_on_category_id"
   end
 
+  create_table "summary_lines", force: :cascade do |t|
+    t.string "status"
+    t.string "error"
+    t.string "content"
+    t.bigint "monthly_statement_id", null: false
+    t.bigint "parsed_transaction_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["monthly_statement_id"], name: "index_summary_lines_on_monthly_statement_id"
+    t.index ["parsed_transaction_id"], name: "index_summary_lines_on_parsed_transaction_id"
+  end
+
   create_table "transactions", force: :cascade do |t|
     t.decimal "amount"
     t.string "name"
@@ -97,6 +112,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_30_223129) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "keywords", "subcategories"
   add_foreign_key "subcategories", "categories"
+  add_foreign_key "summary_lines", "monthly_statements"
+  add_foreign_key "summary_lines", "transactions", column: "parsed_transaction_id"
   add_foreign_key "transactions", "monthly_statements"
   add_foreign_key "transactions", "subcategories"
 end

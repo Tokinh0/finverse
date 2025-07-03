@@ -1,55 +1,48 @@
 require 'csv'
 
 module Parsers
-  class CsvParser
+  class CsvParser < BaseParser
     CSV_CONTENT_START_LINE = 15
     DESCRIPTIONS_TO_IGNORE = ['PAG_FAT_DEB_CC']
 
-    def initialize(monthly_statement)
-      @monthly_statement = monthly_statement
-    end
-
     def call
-      data = []
-
-      @monthly_statement.file.open do |tempfile|
+      monthly_statement.file.open do |tempfile|
         csv_data = CSV.read(tempfile.path, headers: true, skip_blanks: true, liberal_parsing: true)
-        csv_data.drop(CSV_CONTENT_START_LINE).each do |row|
-          data << parse_malformed_row(row)
-        end
+        csv_data.drop(CSV_CONTENT_START_LINE).each { |row| parse_row(row) }
       end
-
-      data.compact
     end
 
     private
 
-    def parse_malformed_row(row)
+    def parse_row(row)
       fields = row.fields.compact
       parts = fields.join(';').split(';').map(&:strip)
 
-      return nil unless parts[0] =~ /^\d{2}\/\d{2}\/\d{4}$/ # date check
+      unless parts[0] =~ /^\d{2}\/\d{2}\/\d{4}$/
+        return create_summary(status: 'skipped', error: 'malformed_row', content: parts)
+      end
 
-      date = parts[0]
-      parsed_name = parts[1].strip.upcase.gsub(/\s+/, '_')
-      return nil if DESCRIPTIONS_TO_IGNORE.any? { |w| parsed_name.include?(w) }
+      name = parts[1]
+      parsed_name = default_string_parse(name)
+      return if DESCRIPTIONS_TO_IGNORE.any? { |w| parsed_name.include?(w) }
 
-      value_part1 = parts[3].gsub(/[^\d]/, '')
-      value_part2 = parts[4].gsub(/[^\d]/, '')
-      amount = "#{value_part1}.#{value_part2}".to_f
-      amount *= -1 if amount.negative?
+      raw_value_part1 = parts[3].gsub(/\D/, '')
+      raw_value_part2 = parts[4].gsub(/\D/, '')
+      return if raw_value_part1.blank? || raw_value_part2.blank?
+
+      amount = "#{raw_value_part1}.#{raw_value_part2}".to_f
+      if name.blank? || amount.zero?
+        return create_summary(status: 'skipped', error: 'name_or_amount_missing', content: parts)
+      end
 
       new_entry = {
-        name: parts[1],
-        parsed_name: parsed_name,
+        name: name,
         amount: amount,
-        transaction_date: DateTime.parse(date),
+        transaction_date: DateTime.parse(parts[0]),
         transaction_type: 'debit'
       }
 
-      Transaction.find_or_create_by(
-        Categorization.call(new_entry).merge({ monthly_statement_id: @monthly_statement.id })
-      )
+      create_transaction(new_entry, parts)
     end
   end
 end

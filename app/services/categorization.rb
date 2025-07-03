@@ -1,8 +1,9 @@
 class Categorization
+  include Searchable
+
   def initialize(new_entry)
     # new_entry = { name: 'MERCADO LIVRE', parsed_name: 'MERCADO-LIVRE', amount: 100.0, transaction_date: Date.today, transaction_type: 'debit' }
     @new_entry = new_entry
-    @parsed_name = new_entry[:parsed_name].to_s.upcase
     @keywords = Keyword.includes(subcategory: :category)
   end
 
@@ -13,7 +14,6 @@ class Categorization
 
     {
       name: @new_entry[:name],
-      parsed_name: @parsed_name,
       amount: @new_entry[:amount],
       subcategory: subcategory,
       transaction_date: @new_entry[:transaction_date],
@@ -28,18 +28,11 @@ class Categorization
   private
 
   def find_best_keyword_match
-    normalized_input = normalize(@parsed_name)
-
-    @keywords
-      .map { |kw| [kw, match_score(normalized_input, kw.name)] }
-      .select { |_, score| score > 0 }
-      .max_by { |_, score| score }
-      &.first
+    parsed_name = default_string_parse(@new_entry[:name])
+    @keywords.map { |kw| [kw, match_score(parsed_name, kw.parsed_name)] }.select { |_, score| score > 0 }.max_by { |_, score| score }&.first
   end
 
   def match_score(input, keyword)
-    keyword = normalize(keyword)
-
     return 3 if input == keyword                     # Exact match
     return 2 if input.include?(" #{keyword} ")       # Whole word match
     return 1 if input.include?(keyword)              # Partial match

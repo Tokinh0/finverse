@@ -2,35 +2,33 @@ module Api::V1
   class SubcategoriesController < ApplicationController
     before_action :set_subcategory, only: %i[ show update destroy ]
 
-    # GET /subcategories
     def index
-      @subcategories = Subcategory.all
-
-      render json: @subcategories
+      subcategories = Subcategory.all.includes(:category)
+      render json: subcategories.map { |s| SubcategoryPresenter.new(s) }
     end
 
-    # GET /subcategories/1
     def show
       render json: @subcategory
     end
 
     # POST /subcategories
     def create
-      @subcategory = Subcategory.new(subcategory_params)
+      subcategory = Subcategory.new(subcategory_params)
 
-      if @subcategory.save
-        render json: @subcategory, status: :created, location: @subcategory
+      if subcategory.save
+        render json: SubcategoryPresenter.new(subcategory), status: :created
       else
-        render json: @subcategory.errors, status: :unprocessable_entity
+        render json: subcategory.errors, status: :unprocessable_entity
       end
     end
 
     # PATCH/PUT /subcategories/1
     def update
-      if @subcategory.update(subcategory_params)
-        render json: @subcategory
+      subcategory = Subcategory.find(params[:id])
+      if subcategory.update(subcategory_params)
+        render json: SubcategoryPresenter.new(subcategory)
       else
-        render json: @subcategory.errors, status: :unprocessable_entity
+        render json: subcategory.errors, status: :unprocessable_entity
       end
     end
 
@@ -47,7 +45,7 @@ module Api::V1
 
       # Only allow a list of trusted parameters through.
       def subcategory_params
-        params.require(:subcategory).permit(:name, :category_id)
+        params.require(:subcategory).permit(:name, :category_id, :color_code)
       end
   end
 end

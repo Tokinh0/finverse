@@ -1,17 +1,14 @@
 class Category < ApplicationRecord
+  include Searchable
+
   has_many :subcategories, dependent: :destroy
   
   validates :name, presence: true
-
-  after_initialize :set_parsed_name
-
-  def set_parsed_name
-    self.parsed_name = name.parameterize.upcase
-  end
+  validates :parsed_name, uniqueness: true
 
   class << self
     def other_category
-      Category.find_or_create_by!(parsed_name: 'OTHER')
+      Category.find_or_create_by!(name: 'Other')
     end
   end
 end

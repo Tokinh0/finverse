@@ -7,6 +7,7 @@ Rails.application.routes.draw do
       resources :categories
       namespace :reports do
         get :monthly_by_category
+        get :monthly_by_subcategory
       end
     end
   end
