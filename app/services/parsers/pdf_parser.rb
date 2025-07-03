@@ -1,19 +1,15 @@
 require 'pdf-reader'
 
 module Parsers
-  class PdfParser
+  class PdfParser < BaseParser
     DESCRIPTIONS_TO_IGNORE = ['PAGTO_FATURA']
-
-    def initialize(monthly_statement)
-      @monthly_statement = monthly_statement
-    end
 
     def call
       Tempfile.create(['upload', '.pdf']) do |tmp|
         tmp.binmode
-        tmp.write(@monthly_statement.file.download)
+        tmp.write(monthly_statement.file.download)
         tmp.rewind
-    
+
         reader = PDF::Reader.new(tmp)
         lines = reader.pages.flat_map(&:text).flat_map(&:lines)
         parse_lines(lines)
@@ -34,27 +30,22 @@ module Parsers
         date_str = match[1]
         raw_description = match[2].strip
         parsed_name = raw_description.upcase.gsub(/\s+/, '_')
-        amount_str = match[3]
-
         next if DESCRIPTIONS_TO_IGNORE.any? { |w| parsed_name.include?(w) }
 
+        amount_str = match[3]
         next unless amount_str
 
         amount = amount_str.gsub('.', '').gsub(',', '.').to_f
-        amount *= -1 if amount.negative?
 
         new_entry = {
           name: raw_description,
           parsed_name: parsed_name,
           amount: amount,
           transaction_date: Date.strptime(date_str, '%d/%m/%Y'),
-          transaction_type: 'debit' # or use logic to determine type
+          transaction_type: 'debit'
         }
 
-        categorized_data = Categorization.call(new_entry)
-        Transaction.find_or_create_by(
-          categorized_data.merge(monthly_statement_id: @monthly_statement.id)
-        )
+        create_transaction(new_entry, [date_str, raw_description, amount_str])
       end
     end
   end

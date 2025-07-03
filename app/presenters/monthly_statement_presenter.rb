@@ -17,6 +17,7 @@ module MonthlyStatementPresenter
         first_transaction_date: @statement.first_transaction_date,
         last_transaction_date: @statement.last_transaction_date,
         statement_type: @statement.statement_type,
+        status: @statement.status,
         url: @statement.file.attached? ? url_for(@statement.file) : nil
       }
     end
@@ -37,6 +38,7 @@ module MonthlyStatementPresenter
         first_transaction_date: @statement.first_transaction_date,
         last_transaction_date: @statement.last_transaction_date,
         statement_type: @statement.statement_type,
+        status: @statement.status,
         url: @statement.file.attached? ? url_for(@statement.file) : nil
       }
     end
