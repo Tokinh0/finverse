@@ -19,7 +19,12 @@ module Parsers
       parts = fields.join(';').split(';').map(&:strip)
 
       unless parts[0] =~ /^\d{2}\/\d{2}\/\d{4}$/
-        return create_summary(status: 'skipped', error: 'malformed_row', content: parts)
+        return SummaryLine.find_or_create_by(
+          status: 'skipped',
+          error: 'malformed_row',
+          content: parts,
+          monthly_statement: monthly_statement
+        )
       end
 
       name = parts[1]
@@ -32,7 +37,12 @@ module Parsers
 
       amount = "#{raw_value_part1}.#{raw_value_part2}".to_f
       if name.blank? || amount.zero?
-        return create_summary(status: 'skipped', error: 'name_or_amount_missing', content: parts)
+        return SummaryLine.find_or_create_by(
+          status: 'skipped',
+          error: 'name_or_amount_missing',
+          content: parts,
+          monthly_statement: monthly_statement
+        )
       end
 
       new_entry = {
@@ -43,6 +53,13 @@ module Parsers
       }
 
       create_transaction(new_entry, parts)
+    rescue StandardError => e
+      SummaryLine.find_or_create_by(
+        status: 'failed',
+        error: e.respond_to?(:message) ? e.message : e.to_s,
+        content: parts,
+        monthly_statement: monthly_statement
+      )
     end
   end
 end

@@ -1,5 +1,5 @@
 class Category < ApplicationRecord
-  include Searchable
+  include Normalizer
 
   has_many :subcategories, dependent: :destroy
   
@@ -8,7 +8,7 @@ class Category < ApplicationRecord
 
   class << self
     def other_category
-      Category.find_or_create_by!(name: 'Other')
+      Category.find_by(parsed_name: 'OUTROS')
     end
   end
 end

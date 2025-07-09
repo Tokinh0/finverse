@@ -66,7 +66,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_02_010122) do
     t.string "status", default: "unprocessed"
     t.date "first_transaction_date"
     t.date "last_transaction_date"
-    t.string "statement_type"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end

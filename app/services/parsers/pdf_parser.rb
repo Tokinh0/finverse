@@ -41,11 +41,12 @@ module Parsers
           name: raw_description,
           parsed_name: parsed_name,
           amount: amount,
-          transaction_date: Date.strptime(date_str, '%d/%m/%Y'),
-          transaction_type: 'debit'
+          transaction_date: Date.strptime(date_str, '%d/%m/%Y')
         }
 
         create_transaction(new_entry, [date_str, raw_description, amount_str])
+      rescue StandardError => e
+        create_summary(status: 'failed', content: line, error: e.message)
       end
     end
   end

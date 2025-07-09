@@ -15,7 +15,8 @@ class SummaryLinePresenter
         amount: @summary_line.parsed_transaction&.amount&.to_f,
         transaction_date: @summary_line.parsed_transaction&.transaction_date,
         category_name: @summary_line.parsed_transaction&.subcategory&.category&.name,
-        subcategory_name: @summary_line.parsed_transaction&.subcategory&.name
+        subcategory_name: @summary_line.parsed_transaction&.subcategory&.name,
+        transaction_type: @summary_line.parsed_transaction&.transaction_type
       }
     }
   end

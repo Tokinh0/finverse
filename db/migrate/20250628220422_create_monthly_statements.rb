@@ -4,7 +4,6 @@ class CreateMonthlyStatements < ActiveRecord::Migration[7.1]
       t.string :status, default: "unprocessed"
       t.date :first_transaction_date
       t.date :last_transaction_date
-      t.string :statement_type
 
       t.timestamps
     end
