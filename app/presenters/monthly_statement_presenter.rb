@@ -16,7 +16,6 @@ module MonthlyStatementPresenter
         created_at: @statement.created_at.strftime("%Y-%m-%d"),
         first_transaction_date: @statement.first_transaction_date,
         last_transaction_date: @statement.last_transaction_date,
-        statement_type: @statement.statement_type,
         status: @statement.status,
         url: @statement.file.attached? ? url_for(@statement.file) : nil
       }
@@ -37,7 +36,6 @@ module MonthlyStatementPresenter
         created_at: @statement.created_at.strftime("%Y-%m-%d"),
         first_transaction_date: @statement.first_transaction_date,
         last_transaction_date: @statement.last_transaction_date,
-        statement_type: @statement.statement_type,
         status: @statement.status,
         url: @statement.file.attached? ? url_for(@statement.file) : nil
       }

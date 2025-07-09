@@ -1,5 +1,5 @@
 class Subcategory < ApplicationRecord
-  include Searchable
+  include Normalizer
 
   belongs_to :category
   has_many :transactions
@@ -11,7 +11,11 @@ class Subcategory < ApplicationRecord
 
   class << self
     def other_subcategory
-      Subcategory.find_or_create_by!(name: 'Others', category: Category.other_category)
-    end
+      category = Category.other_category
+      subcategory = Subcategory.find_by(parsed_name: 'OUTROS', category_id: category.id)
+      raise '❌ Failed to create/find Subcategory. Check validations or DB constraints.' if subcategory.nil?
+    
+      subcategory
+    end    
   end
 end

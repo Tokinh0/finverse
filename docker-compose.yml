@@ -24,8 +24,12 @@ services:
       - db
       - redis
     environment:
-      DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
+      DATABASE_URL: postgres://postgres:postgres@db:5432/finverse_development
       REDIS_URL: redis://redis:6379/1
+      DEFAULT_DATA_FILE_PATHNAME: default_data.jsonc
+
+    env_file:
+      - .env
 
 volumes:
   postgres-data:

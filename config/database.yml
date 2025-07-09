@@ -5,6 +5,8 @@ default: &default
 
 development:
   <<: *default
+  database: finverse_development
 
 test:
   <<: *default
+  database: finverse_test

@@ -2,7 +2,6 @@ class MonthlyStatement < ApplicationRecord
   has_many :transactions, dependent: :destroy
   has_many :summary_lines, dependent: :destroy
   
-  enum statement_type: { credit: 'credit', debit: 'debit' }
   enum status: { unprocessed: 'unprocessed', processed: 'processed', failed: 'failed' }
   
   has_one_attached :file
@@ -20,9 +19,8 @@ class MonthlyStatement < ApplicationRecord
   
       parser.call
 
-      set_statement_type
       set_transaction_date_range
-      self.status = :processed
+      set_statement_status
       save!
     end
 
@@ -33,16 +31,12 @@ class MonthlyStatement < ApplicationRecord
     raise(e)
   end
 
-  def set_statement_type
-    if file.filename.to_s.end_with?('.csv')
-      self.statement_type = :credit
-    else
-      self.statement_type = :debit
-    end
-  end
-
   def set_transaction_date_range
     self.first_transaction_date = transactions.minimum(:transaction_date)
     self.last_transaction_date = transactions.maximum(:transaction_date)
+  end
+
+  def set_statement_status
+    summary_lines.where(status: 'failed').exists? ? self.status = 'failed' : self.status = 'processed'
   end
 end
