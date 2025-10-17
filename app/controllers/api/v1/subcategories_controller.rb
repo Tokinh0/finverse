@@ -45,7 +45,7 @@ module Api::V1
 
       # Only allow a list of trusted parameters through.
       def subcategory_params
-        params.require(:subcategory).permit(:name, :category_id, :color_code)
+        params.require(:subcategory).permit(:name, :category_id, :color_code, :subcategory_type)
       end
   end
 end

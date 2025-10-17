@@ -7,12 +7,9 @@ module Parsers
     end
 
     def create_transaction(entry, raw_content)
-      categorized = Categorization.call(entry)
-      if categorized[:subcategory_id].nil?
-        binding.pry
-      end
-      transaction = Transaction.find_or_initialize_by(categorized.merge(monthly_statement_id: monthly_statement.id))
-
+      transaction = Transaction.find_or_initialize_by(Categorization.call(entry))
+      transaction.monthly_statement = monthly_statement
+      
       if transaction.save
         SummaryLine.find_or_create_by(
           monthly_statement: monthly_statement,

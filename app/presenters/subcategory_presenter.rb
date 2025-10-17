@@ -9,6 +9,7 @@ class SubcategoryPresenter
       id: @subcategory.id,
       name: @subcategory.name,
       color_code: @subcategory.color_code,
+      subcategory_type: @subcategory.subcategory_type,
       category: {
         id: @subcategory.category.id,
         name: @subcategory.category.name,

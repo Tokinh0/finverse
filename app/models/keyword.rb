@@ -21,7 +21,7 @@ class Keyword < ApplicationRecord
   # Class-level keyword helpers
   class << self
     def seed_data
-      @seed_data ||= JsonUtils.load_default_data
+      @seed_data ||= JsonUtils.load_initial_data
     end
 
     def debit_keywords
