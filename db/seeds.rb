@@ -3,18 +3,15 @@ include StringUtils
 include JsonUtils
 
 # Load and prepare data
-seed_data = load_default_data
+seed_data = load_initial_data
 CATEGORIES_WITH_KEYWORDS = seed_data['categories_with_keywords'] || {}
 DEBIT_KEYWORDS = (seed_data['debit_keywords'] || []).map { |k| default_string_parse(k) }
 CREDIT_KEYWORDS = (seed_data['credit_keywords'] || []).map { |k| default_string_parse(k) }
 IGNORED_KEYWORDS = (seed_data['ignored_keywords'] || []).map { |k| default_string_parse(k) }
+ASSETS = seed_data['assets'] || []
 
-def detect_keyword_type(parsed_keyword)
-  return :debit   if DEBIT_KEYWORDS.include?(parsed_keyword)
-  return :credit  if CREDIT_KEYWORDS.include?(parsed_keyword)
-  return :ignored if IGNORED_KEYWORDS.include?(parsed_keyword)
-  :unknown
-end
+raise 'Missing categories on initial data file' if CATEGORIES_WITH_KEYWORDS.empty?
+raise 'Missing Key word on initial data file' if DEBIT_KEYWORDS.empty? || CREDIT_KEYWORDS.empty?
 
 # Process data
 CATEGORIES_WITH_KEYWORDS.each do |category_key, subcategory_mappings|
@@ -42,4 +39,17 @@ CATEGORIES_WITH_KEYWORDS.each do |category_key, subcategory_mappings|
   end
 rescue ActiveRecord::RecordInvalid => e
   puts "⚠️ Skipping invalid subcategory/category: #{e.record.inspect}"
+end
+
+ASSETS.each do |asset|
+  asset = Asset.find_or_initialize_by(description: a[:description], ticker: a[:ticker], asset_type: a[:asset_type])
+  asset.asset_type = a[:asset_type]
+  asset.current_value = a[:current_value]
+  asset.rating = a[:rating]
+  asset.quantity = a[:quantity]
+  asset.color_code = a[:color_code]
+  asset.save!
+  puts "Added asset #{asset.inspect}"
+rescue ActiveRecord::RecordInvalid => e
+  puts "⚠️ Skipping invalid asset: #{e.record.inspect}"
 end

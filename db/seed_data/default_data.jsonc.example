@@ -1,0 +1,96 @@
+// ATTENTION
+// THIS FILE SHOULD BE MANUALLY FILLED WITH INDIVIDUAL DATA
+{
+  "categories_with_keywords": {
+    "Ganhos": [
+      {
+        "SALARIO": ["SALARIO", "LIBERACAO_CAMBIO", "LIBERACAO_CAMBIO_BANCO_LIQUIDACAO_CONTR"],
+        "TRANSFERENCIAS": ["TRANSFERENCIA_DA_POUPANCA"],
+        "OUTROS": ["DISTRIBUICAO", "RECEBIMENTO"]
+      }
+    ],
+    "Investimento": [
+      {
+        "POUPANCA": ["APLICACAO", "APLIC._FINANC"],
+      }
+    ],
+    "Conforto": [
+      {
+        "FOOD": [
+          "IFOOD",
+          "IFD",
+          "PLANET_PIZZA",
+          "ACAI_ITALIA",
+          "THEBURGAN",
+          "JESSICA_FERNANDES",
+          "PANIFICADORA",
+          "MC_DONALDS",
+          "SUKIYA",
+          "CLA",
+          "SANDUICHE",
+          "PAMONHA",
+          "PIZZA"
+        ],
+        "UBER": ["UBER"],
+        "ASSINATURA": ["NETFLIX", "SPOTIFY", "AMAZON_PRIME", "AMAZONPRIME", "DISNEY", "APPLE", "VIACOM", "MELIMAIS", "PARAMOUNT"]
+      }
+    ],
+    "Contas Fixas": [
+      {
+        "CONTAS": ["UNIMED", "CELG", "SEG_VIDA"],
+        "TAXAS": ["TAXA", "ANUIDADE_CARTAO", "TARIFA", "IOF", "DEBITO_DE_CAMBIO", "CESTA_DE", "MENSALID_TAG_DE_PASSAGEM", "INTEGR.CAPITAL_SUBSCRITO"],
+        "IMPOSTOS": ["DEPARTAMENTO_ESTADU", "MINISTERIO_DA_FAZEN", "RECEITA_FEDERAL"],
+        "CARRO": [
+          "POSTO",
+          "CENTRO_AUTOMOTIVO",
+          "AUTOMOTIVO",
+          "PEDAGIO",
+          "ESTACIONAMENTO",
+          "TOKIO_MARINE",
+          "AUTOZONE"
+        ],
+        "MERCADO": [
+          "DANIEL_SUPERMERCADO",
+          "SUPERMERCADO_RAYANNE",
+          "MERCADODPAULA",
+          "SUPERMERCADO_FAMILIA",
+          "SUPERMERCADO_SILVA",
+          "DOLISMARDEANDRADE"
+        ],
+        "BEM_ESTAR": ["SKYFIT", "SACOLAO", "HORTIFRUTI", "SESIPARC", "SESI_DR_GO"],
+      }
+    ],
+    "Lazer": [
+      {
+        "ALCOOL": [
+          "DISTRIBUIDORA",
+          "BEBIDA",
+          "TABACARIA",
+          "BAR",
+          "JULIETA_GASTROBAR",
+          "XICO_BARU",
+          "RESTAURAN",
+          "HOPSLAND",
+          "SUPERMERCADO_ANDRADE",
+          "EMPORIO_BUENO",
+          "PAULO_ENRIQUE_DUARTE",
+          "BONTELO_SUPERMERCADO",
+          "BEER"
+        ],
+        "COMPRAS": ["MERCADOLIVRE", "GAMES"],
+        "VIAGEMS": ["SALTO_CORUMBA", "NIKKEY_PALACE", "HOTEL"],
+      }
+    ],
+    "Outros": [
+      {
+        "OUTROS": ["OUTROS"]
+      }
+    ]
+  },
+  "debit_keywords": [
+    "COMPRA", "PAGAMENTO", "BOLETO", "DEBITO", "CAPITAL_SUBSCRITO", "IOF", "MERCADO", "CESTA_DE", "APLICACAO",
+    "PASSAGEM_PEDAGIO", "MENSALID", "PASSAGEM_ESTACIONAMENTO"
+  ],
+  "credit_keywords": ["LIBERACAO_CAMBIO", "TRANSFERENCIA_DA_POUPANCA", "RECEBIMENTO", "DISTRIBUICAO"],
+  "ignored_keywords": ["PAGTO_FATURA", "PAG_FAT_DEB_CC"]
+}

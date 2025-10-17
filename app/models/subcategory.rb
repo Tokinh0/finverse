@@ -8,6 +8,9 @@ class Subcategory < ApplicationRecord
   validates :name, presence: true
   validates :parsed_name, uniqueness: { scope: :category_id }
 
+  enum subcategory_type: { 
+    gain: 'gain', expense: 'expense', investment: 'investment', transfer: 'transfer', other: 'other' 
+  }
 
   class << self
     def other_subcategory

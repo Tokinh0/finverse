@@ -1,7 +1,7 @@
 # lib/json_utils.rb
 
 module JsonUtils
-  def load_default_data
+  def load_initial_data
     content = File.read(Rails.root.join('db', 'seed_data', ENV['DEFAULT_DATA_FILE_PATHNAME']))
     json = content.lines.reject { |line| line.strip.start_with?('//') }.join
     JSON.parse(json)
@@ -10,5 +10,5 @@ module JsonUtils
     exit(1)
   end
 
-  module_function :load_default_data
+  module_function :load_initial_data
 end

@@ -13,7 +13,8 @@ class CategoryPresenter
         {
           id: sub.id,
           name: sub.name,
-          color_code: sub.color_code
+          color_code: sub.color_code,
+          subcategory_type: sub.subcategory_type
         }
       end
     }
