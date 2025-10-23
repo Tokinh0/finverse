@@ -11,7 +11,7 @@
     ],
     "Investimento": [
       {
-        "POUPANCA": ["APLICACAO", "APLIC._FINANC"],
+        "POUPANCA": ["APLICACAO", "APLIC._FINANC"]
       }
     ],
     "Conforto": [
@@ -57,7 +57,7 @@
           "MARKET_H",
           "MARKET_F"
         ],
-        "BEM_ESTAR": ["GYM_B", "SACOLAO", "HORTIFRUTI", "GYM_A_PARCEL", "GYM_A"],
+        "BEM_ESTAR": ["GYM_B", "SACOLAO", "HORTIFRUTI", "GYM_A_PARCEL", "GYM_A"]
       }
     ],
     "Lazer": [
@@ -78,7 +78,7 @@
           "BEER"
         ],
         "COMPRAS": ["MERCADOLIVRE", "GAMES"],
-        "VIAGEMS": ["TRAVEL_A", "HOTEL_A", "HOTEL"],
+        "VIAGEMS": ["TRAVEL_A", "HOTEL_A", "HOTEL"]
       }
     ],
     "Outros": [
@@ -88,8 +88,18 @@
     ]
   },
   "debit_keywords": [
-    "COMPRA", "PAGAMENTO", "BOLETO", "DEBITO", "CAPITAL_SUBSCRITO", "IOF", "MERCADO", "CESTA_DE", "APLICACAO",
-    "PASSAGEM_PEDAGIO", "MENSALID", "PASSAGEM_ESTACIONAMENTO"
+    "COMPRA",
+    "PAGAMENTO",
+    "BOLETO",
+    "DEBITO",
+    "CAPITAL_SUBSCRITO",
+    "IOF",
+    "MERCADO",
+    "CESTA_DE",
+    "APLICACAO",
+    "PASSAGEM_PEDAGIO",
+    "MENSALID",
+    "PASSAGEM_ESTACIONAMENTO"
   ],
   "credit_keywords": ["LIBERACAO_CAMBIO", "TRANSFERENCIA_DA_POUPANCA", "RECEBIMENTO", "DISTRIBUICAO"],
   "ignored_keywords": ["PAGTO_FATURA", "PAG_FAT_DEB_CC"]

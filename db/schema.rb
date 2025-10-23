@@ -50,6 +50,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_25_221244) do
     t.integer "rating"
     t.float "quantity"
     t.string "color_code"
+    t.string "location"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -86,7 +87,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_25_221244) do
     t.string "name"
     t.string "parsed_name"
     t.string "color_code"
-    t.string "subcategory_type"
+    t.string "subcategory_type", default: "expense"
     t.bigint "category_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
