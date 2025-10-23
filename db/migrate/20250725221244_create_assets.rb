@@ -8,7 +8,7 @@ class CreateAssets < ActiveRecord::Migration[7.1]
       t.integer :rating
       t.float :quantity
       t.string :color_code
-      t.location :string
+      t.string :location
 
       t.timestamps
     end

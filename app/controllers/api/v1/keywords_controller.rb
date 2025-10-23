@@ -19,7 +19,7 @@ module Api::V1
       @keyword = Keyword.new(keyword_params)
 
       if @keyword.save
-        render json: @keyword, status: :created, location: @keyword
+        render json: @keyword, status: :created
       else
         render json: @keyword.errors, status: :unprocessable_entity
       end
