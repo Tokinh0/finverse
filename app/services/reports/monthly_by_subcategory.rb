@@ -6,7 +6,7 @@ module Reports
     end
 
     def call
-      all = Transaction.includes(subcategory: :category).to_a
+      all = Transaction.includes(subcategory: :category).order(transaction_date: :desc).to_a
 
       {
         credit:  build_report(all.select { |t| t.transaction_type == "credit" }),

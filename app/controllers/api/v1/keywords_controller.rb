@@ -4,31 +4,30 @@ module Api::V1
 
     # GET /keywords
     def index
-      @keywords = Keyword.all
-
-      render json: @keywords
+      keywords = Keyword.includes(subcategory: :category).order(:subcategory_id)
+      render json: keywords.map { |keyword| KeywordPresenter.new(keyword) }
     end
 
     # GET /keywords/1
     def show
-      render json: @keyword
+      render json: KeywordPresenter.new(@keyword)
     end
 
     # POST /keywords
     def create
-      @keyword = Keyword.new(keyword_params)
+      keyword = Keyword.new(keyword_params)
 
-      if @keyword.save
-        render json: @keyword, status: :created
+      if keyword.save
+        render json: KeywordPresenter.new(keyword), status: :created
       else
-        render json: @keyword.errors, status: :unprocessable_entity
+        render json: keyword.errors, status: :unprocessable_entity
       end
     end
 
     # PATCH/PUT /keywords/1
     def update
       if @keyword.update(keyword_params)
-        render json: @keyword
+        render json: KeywordPresenter.new(@keyword)
       else
         render json: @keyword.errors, status: :unprocessable_entity
       end
@@ -37,17 +36,18 @@ module Api::V1
     # DELETE /keywords/1
     def destroy
       @keyword.destroy!
+      head :no_content
     end
 
     private
       # Use callbacks to share common setup or constraints between actions.
       def set_keyword
-        @keyword = Keyword.find(params[:id])
+        @keyword = Keyword.includes(subcategory: :category).find(params[:id])
       end
 
       # Only allow a list of trusted parameters through.
       def keyword_params
-        params.require(:keyword).permit(:name, :subcategory_id)
+        params.require(:keyword).permit(:name, :subcategory_id, :description, :color_code, :keyword_type)
       end
   end
 end
