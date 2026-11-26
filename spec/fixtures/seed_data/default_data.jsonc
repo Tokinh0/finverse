@@ -1,0 +1,7 @@
+// Minimal seed data used by the specs (see db/seed_data/default_data.jsonc.example)
+{
+  "categories_with_keywords": {},
+  "debit_keywords": ["COMPRA", "PAGAMENTO"],
+  "credit_keywords": ["RECEBIMENTO", "SALARIO"],
+  "ignored_keywords": ["PAGTO_FATURA"]
+}
