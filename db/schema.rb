@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_07_25_221244) do
+ActiveRecord::Schema[7.1].define(version: 2025_12_18_202559) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -50,9 +50,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_25_221244) do
     t.integer "rating"
     t.float "quantity"
     t.string "color_code"
-    t.string "location"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "last_uploaded_unit_value", precision: 10, scale: 2
   end
 
   create_table "categories", force: :cascade do |t|
@@ -87,7 +87,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_25_221244) do
     t.string "name"
     t.string "parsed_name"
     t.string "color_code"
-    t.string "subcategory_type", default: "expense"
+    t.string "subcategory_type"
     t.bigint "category_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

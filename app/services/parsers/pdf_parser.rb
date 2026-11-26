@@ -3,6 +3,7 @@ require 'pdf-reader'
 module Parsers
   class PdfParser < BaseParser
     DESCRIPTIONS_TO_IGNORE = ['PAGTO_FATURA']
+    LAYOUT_PARSERS = [SicrediAccountStatementPdf, SicrediCreditCardPdf].freeze
 
     def call
       Tempfile.create(['upload', '.pdf']) do |tmp|
@@ -11,12 +12,25 @@ module Parsers
         tmp.rewind
 
         reader = PDF::Reader.new(tmp)
+        layout_parser = self.class.layout_parser_for(reader)
+        next layout_parser.new(monthly_statement, reader).call if layout_parser
+
+        # Legacy Sicredi extrato layout (one transaction per text line).
         lines = reader.pages.flat_map(&:text).flat_map(&:lines)
         parse_lines(lines)
       end
     end
 
+    def self.layout_parser_for(reader)
+      first_page_text = reader.pages.first&.text.to_s
+      LAYOUT_PARSERS.find { |parser| parser.matches?(first_page_text) }
+    end
+
     private
+
+    def create_summary(status:, content:, error:)
+      SummaryLine.create!(monthly_statement: monthly_statement, status: status, content: content.to_json, error: error)
+    end
 
     def parse_lines(lines)
       lines.map(&:strip).reject(&:empty?).each do |line|

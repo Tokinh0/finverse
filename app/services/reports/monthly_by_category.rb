@@ -15,7 +15,11 @@ module Reports
     private
 
     def build_report(transactions)
-      transactions.group_by { |t| t.transaction_date.strftime("%Y-%m") }.each_with_object({}) do |(month, monthly_transactions), result|
+      transactions
+        .group_by { |t| t.transaction_date.strftime("%Y-%m") }
+        .sort_by { |month, _| month }
+        .reverse
+        .each_with_object({}) do |(month, monthly_transactions), result|
         result[month] = monthly_transactions.group_by { |t| t.subcategory.category.parsed_name }.each_with_object({}) do |(category_name, category_transactions), cat_hash|
           category = category_transactions.first.subcategory.category
 

@@ -17,6 +17,7 @@ module Api::V1
 
       render json: { 
         assets: assets.map { |a| AssetPresenter.new(a).as_json },
+        asset_types: Asset::ASSET_TYPES,
         portfolioData: portfolio_data
       }
     end

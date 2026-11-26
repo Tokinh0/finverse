@@ -1,5 +1,7 @@
 module Parsers
   class BaseParser
+    include StringUtils
+
     attr_reader :monthly_statement
 
     def initialize(monthly_statement)
@@ -7,9 +9,11 @@ module Parsers
     end
 
     def create_transaction(entry, raw_content)
-      transaction = Transaction.find_or_initialize_by(Categorization.call(entry))
+      # Always a new record: identical purchases (same day, name and amount) are
+      # legitimate separate transactions and must not be merged.
+      transaction = Transaction.new(Categorization.call(entry))
       transaction.monthly_statement = monthly_statement
-      
+
       if transaction.save
         SummaryLine.find_or_create_by(
           monthly_statement: monthly_statement,
@@ -26,6 +30,15 @@ module Parsers
           content: raw_content.to_json
         )
       end
+    end
+
+    def create_failed_summary(raw_content, error)
+      SummaryLine.create!(
+        monthly_statement: monthly_statement,
+        status: 'failed',
+        error: error,
+        content: raw_content.to_json
+      )
     end
   end
 end
