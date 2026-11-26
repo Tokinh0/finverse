@@ -14,11 +14,10 @@ class Subcategory < ApplicationRecord
 
   class << self
     def other_subcategory
-      category = Category.other_category
-      subcategory = Subcategory.find_by(parsed_name: 'OUTROS', category_id: category.id)
-      raise '❌ Failed to create/find Subcategory. Check validations or DB constraints.' if subcategory.nil?
-    
+      subcategory = Category.other_category&.subcategories&.find_by(parsed_name: 'OUTROS')
+      raise 'Fallback Subcategory "Outros" (category "Outros") not found. Run db:seed.' if subcategory.nil?
+
       subcategory
-    end    
+    end
   end
 end

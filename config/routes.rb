@@ -3,7 +3,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :assets
       resources :keywords
-      resources :monthly_statements
+      resources :monthly_statements, only: %i[index show create destroy]
       resources :subcategories
       resources :categories
       namespace :reports do

@@ -1,4 +1,3 @@
-# app/services/reports/monthly_by_subcategory.rb
 module Reports
   class MonthlyBySubcategory
     def self.call

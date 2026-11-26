@@ -1,4 +1,3 @@
-# app/presenters/category_presenter.rb
 class CategoryPresenter
   def initialize(category)
     @category = category

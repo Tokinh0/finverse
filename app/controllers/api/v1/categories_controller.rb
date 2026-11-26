@@ -8,17 +8,16 @@ module Api::V1
     end
 
     def show
-      render json: @category
+      render json: CategoryPresenter.new(@category)
     end
 
     def update
-      category = Category.find(params[:id])
-      if category.update(category_params)
-        render json: CategoryPresenter.new(category)
+      if @category.update(category_params)
+        render json: CategoryPresenter.new(@category)
       else
-        render json: { errors: category.errors.full_messages }, status: :unprocessable_entity
+        render json: { errors: @category.errors.full_messages }, status: :unprocessable_entity
       end
-    end    
+    end
 
     def create
       category = Category.new(category_params)

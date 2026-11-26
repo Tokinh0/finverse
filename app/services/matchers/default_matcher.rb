@@ -1,16 +1,14 @@
 module Matchers
   class DefaultMatcher
-    include StringUtils
-
     class << self
       def compare(input, keyword)
-        parsed_name = default_string_parse(input)
-        parsed_keyword = default_string_parse(keyword)
+        parsed_name = StringUtils.default_string_parse(input)
+        parsed_keyword = StringUtils.default_string_parse(keyword)
         match_score(parsed_name, parsed_keyword)
       end
 
       def find_best_keyword_match(word)
-        parsed_name = default_string_parse(word)
+        parsed_name = StringUtils.default_string_parse(word)
         Keyword.all.map { |kw| [kw, match_score(parsed_name, kw.parsed_name)] }.select { |_, score| score > 0 }.max_by { |_, score| score }&.first
       end
     

@@ -1,7 +1,6 @@
 class Categorization
   def initialize(new_entry)
     @new_entry = new_entry
-    @keywords = Keyword.includes(subcategory: :category)
   end
 
   def call
@@ -22,9 +21,11 @@ class Categorization
     new(entry).call
   end
 
+  private
+
   def infer_transaction_type
     return :debit if @new_entry[:amount] < 0
 
-    Keyword.infer_keyword_type(default_string_parse(@new_entry[:name]))
+    Keywords::TypeInference.call(StringUtils.default_string_parse(@new_entry[:name]))
   end
 end

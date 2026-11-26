@@ -24,7 +24,7 @@ services:
       - db
       - redis
     environment:
-      DATABASE_URL: postgres://postgres:postgres@db:5432/finverse_development
+      DATABASE_URL: postgres://postgres:postgres@db:5432 # database name comes from config/database.yml per environment
       REDIS_URL: redis://redis:6379/1
       DEFAULT_DATA_FILE_PATHNAME: default_data.jsonc
 

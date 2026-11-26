@@ -1,13 +1,12 @@
+# Keeps `parsed_name` (upcased, underscored; see StringUtils#default_string_parse) in sync
+# with `name`. Matching, seeding and lookups compare `parsed_name`, so it must follow
+# every assignment of `name`, including updates.
 module Normalizer
   extend ActiveSupport::Concern
+  include StringUtils
 
-  included do
-    if self < ActiveRecord::Base
-      after_initialize :set_parsed_name, if: -> { respond_to?(:name) && respond_to?(:parsed_name=) }
-    end
-  end
-
-  def set_parsed_name
-    self.parsed_name = default_string_parse(name) if respond_to?(:name) && name
+  def name=(value)
+    super
+    self.parsed_name = value.nil? ? nil : default_string_parse(value)
   end
 end

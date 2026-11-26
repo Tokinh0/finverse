@@ -8,10 +8,9 @@ module Api::V1
     end
 
     def show
-      render json: @subcategory
+      render json: SubcategoryPresenter.new(@subcategory)
     end
 
-    # POST /subcategories
     def create
       subcategory = Subcategory.new(subcategory_params)
 
@@ -22,28 +21,23 @@ module Api::V1
       end
     end
 
-    # PATCH/PUT /subcategories/1
     def update
-      subcategory = Subcategory.find(params[:id])
-      if subcategory.update(subcategory_params)
-        render json: SubcategoryPresenter.new(subcategory)
+      if @subcategory.update(subcategory_params)
+        render json: SubcategoryPresenter.new(@subcategory)
       else
-        render json: subcategory.errors, status: :unprocessable_entity
+        render json: @subcategory.errors, status: :unprocessable_entity
       end
     end
 
-    # DELETE /subcategories/1
     def destroy
       @subcategory.destroy!
     end
 
     private
-      # Use callbacks to share common setup or constraints between actions.
       def set_subcategory
         @subcategory = Subcategory.find(params[:id])
       end
 
-      # Only allow a list of trusted parameters through.
       def subcategory_params
         params.require(:subcategory).permit(:name, :category_id, :color_code, :subcategory_type)
       end

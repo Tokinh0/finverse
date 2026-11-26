@@ -9,9 +9,7 @@ class Asset < ApplicationRecord
     'acoes_internacionais' => 'Ações Internacionais',
     'acoes_nacionais' => 'Ações Nacionais',
     'reserva' => 'Reserva',
-  }
-  ASSET_TYPES_VALUES = ASSET_TYPES.values
-  ASSET_TYPES_KEYS = ASSET_TYPES.keys
+  }.freeze
 
   enum asset_type: ASSET_TYPES
 end

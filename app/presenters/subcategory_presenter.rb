@@ -1,4 +1,3 @@
-# app/presenters/category_presenter.rb
 class SubcategoryPresenter
   def initialize(subcategory)
     @subcategory = subcategory
