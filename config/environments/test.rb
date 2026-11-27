@@ -30,6 +30,12 @@ Rails.application.configure do
 
   # Store uploaded files on the local file system in a temporary directory
   config.active_storage.service = :test
+  config.active_job.queue_adapter = :test
+
+  # Fixed keys so specs (and CI) can use encrypted attributes without the app's credentials.
+  config.active_record.encryption.primary_key = "test-primary-key-not-secret-0000"
+  config.active_record.encryption.deterministic_key = "test-deterministic-key-not-secret"
+  config.active_record.encryption.key_derivation_salt = "test-derivation-salt-not-secret-0"
 
 
   # Tell Action Mailer not to deliver emails to the real world.

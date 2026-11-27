@@ -50,4 +50,42 @@ RSpec.describe MonthlyStatements::Import do
     expect(statement.transactions.count).to eq(0)
     expect(statement.reload).to be_failed
   end
+
+  describe 'duplicate imports' do
+    let(:rows) { [ '05/01/2025;IFOOD;;"R$ 60,28";;;C', '06/01/2025;UBER;;"R$ 15,00";;;C', '07/01/2025;LOJA;;"R$ 9,90";;;C' ] }
+
+    it 'rejects a file that was already imported' do
+      described_class.call(csv_statement(*rows))
+      again = csv_statement(*rows)
+
+      expect(described_class.call(again)).to be(false)
+      expect(again.errors[:file]).to include(/already imported/)
+      expect(again.transactions).to be_empty
+    end
+
+    it 'rejects a different file whose transactions were already imported' do
+      described_class.call(csv_statement(*rows))
+      other_file = csv_statement(*rows, '')
+
+      expect(described_class.call(other_file)).to be(false)
+      expect(other_file.errors[:file]).to include(/3 of 3 transactions were already imported/)
+      expect(other_file.reload.transactions).to be_empty
+    end
+
+    it 'imports a statement that only partly overlaps an earlier one' do
+      described_class.call(csv_statement(*rows))
+      next_month = csv_statement(rows.first, '05/02/2025;IFOOD;;"R$ 60,28";;;C', '06/02/2025;UBER;;"R$ 15,00";;;C')
+
+      expect(described_class.call(next_month)).to be(true)
+      expect(next_month.transactions.count).to eq(3)
+    end
+
+    it 'allows re-importing a file whose earlier import failed' do
+      failed = csv_statement(*rows)
+      failed.update!(status: 'failed')
+      again = csv_statement(*rows)
+
+      expect(described_class.call(again)).to be(true)
+    end
+  end
 end

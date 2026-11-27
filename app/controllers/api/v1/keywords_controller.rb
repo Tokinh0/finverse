@@ -17,7 +17,7 @@ module Api::V1
       if keyword.save
         render json: KeywordPresenter.new(keyword), status: :created
       else
-        render json: keyword.errors, status: :unprocessable_entity
+        render json: keyword.errors, status: :unprocessable_content
       end
     end
 
@@ -25,7 +25,7 @@ module Api::V1
       if @keyword.update(keyword_params)
         render json: KeywordPresenter.new(@keyword)
       else
-        render json: @keyword.errors, status: :unprocessable_entity
+        render json: @keyword.errors, status: :unprocessable_content
       end
     end
 
@@ -40,7 +40,7 @@ module Api::V1
       end
 
       def keyword_params
-        params.require(:keyword).permit(:name, :subcategory_id, :description, :color_code, :keyword_type)
+        params.require(:keyword).permit(:name, :subcategory_id, :description, :color_code, :keyword_type, :min_amount, :max_amount)
       end
   end
 end

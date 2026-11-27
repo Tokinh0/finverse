@@ -14,12 +14,14 @@ module Api::V1
       @monthly_statement = MonthlyStatement.new(monthly_statement_params)
 
       if @monthly_statement.save && MonthlyStatements::Import.call(@monthly_statement)
+        run = Suggestions::Enqueue.call(@monthly_statement)
         render json: {
           statement: MonthlyStatementPresenter.new(@monthly_statement),
+          suggestion_run: run && SuggestionRunPresenter.new(run),
           summary_lines: @monthly_statement.summary_lines.map { |s| SummaryLinePresenter.new(s) }
         }, status: :created
       else
-        render json: @monthly_statement.errors, status: :unprocessable_entity
+        render json: @monthly_statement.errors, status: :unprocessable_content
       end
     end
 

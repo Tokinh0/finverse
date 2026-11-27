@@ -15,7 +15,7 @@ module Api::V1
       if @category.update(category_params)
         render json: CategoryPresenter.new(@category)
       else
-        render json: { errors: @category.errors.full_messages }, status: :unprocessable_entity
+        render json: { errors: @category.errors.full_messages }, status: :unprocessable_content
       end
     end
 
@@ -24,7 +24,7 @@ module Api::V1
       if category.save
         render json: CategoryPresenter.new(category), status: :created
       else
-        render json: { errors: category.errors.full_messages }, status: :unprocessable_entity
+        render json: { errors: category.errors.full_messages }, status: :unprocessable_content
       end
     end
 
@@ -32,7 +32,7 @@ module Api::V1
       if @category.destroy
         head :no_content
       else
-        render json: { errors: @category.errors.full_messages }, status: :unprocessable_entity
+        render json: { errors: @category.errors.full_messages }, status: :unprocessable_content
       end
     end
 

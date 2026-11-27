@@ -25,7 +25,7 @@ RSpec.describe 'Api::V1::Keywords' do
 
     post '/api/v1/keywords', params: { keyword: { name: 'ifood', subcategory_id: subcategory.id } }
 
-    expect(response).to have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
   end
 
   it 'updates and destroys a keyword' do
@@ -36,5 +36,14 @@ RSpec.describe 'Api::V1::Keywords' do
 
     delete "/api/v1/keywords/#{keyword.id}"
     expect(response).to have_http_status(:no_content)
+  end
+
+  it 'creates a keyword with an amount range and returns it' do
+    subcategory = create(:subcategory)
+
+    post '/api/v1/keywords', params: { keyword: { name: 'amazon', subcategory_id: subcategory.id, min_amount: '100', max_amount: '' } }
+
+    expect(response).to have_http_status(:created)
+    expect(json).to include('parsed_name' => 'AMAZON', 'min_amount' => 100.0, 'max_amount' => nil)
   end
 end

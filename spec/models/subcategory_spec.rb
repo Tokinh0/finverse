@@ -41,7 +41,7 @@ RSpec.describe Subcategory do
       create(:keyword, subcategory: food)
 
       expect(food.destroy).to be_truthy
-      expect(transaction.reload.subcategory).to eq(fallback)
+      expect(transaction.reload).to have_attributes(subcategory: fallback, categorization_source: 'uncategorized', keyword_id: nil)
       expect(Keyword.count).to eq(0)
     end
 

@@ -1,7 +1,7 @@
 module Api::V1
   class TransactionsController < ApplicationController
     def index
-      result = Transactions::Search.call(params.permit(:month, :category_id, :subcategory_id, :transaction_type, :q, :page, :per_page))
+      result = Transactions::Search.call(params.permit(:month, :category_id, :subcategory_id, :transaction_type, :q, :unknown, :page, :per_page))
 
       render json: {
         transactions: result.transactions.map { |t| TransactionPresenter.new(t) },
@@ -15,26 +15,46 @@ module Api::V1
       }
     end
 
-    # Body: { transaction: { subcategory_id, transaction_type, keyword, apply_to_matching } }
+    # Body: { transaction: { subcategory_id, transaction_type, keyword, apply_to_matching, reason } }
     def update
       result = Transactions::Recategorize.call(Transaction.find(params[:id]), **recategorize_params)
 
       if result.success?
+        nudge = Rules::LocalSuggester.nudge_for(result.transaction) if result.transaction.categorized_by_manual? && !result.keyword
         render json: {
           transaction: TransactionPresenter.new(result.transaction.reload),
           keyword: result.keyword && KeywordPresenter.new(result.keyword),
-          updated_count: result.updated_count
+          updated_count: result.updated_count,
+          rule_nudge: nudge && RuleSuggestionPresenter.new(nudge, subcategories: Subcategory.includes(:category).index_by(&:id))
         }
       else
-        render json: { errors: result.errors }, status: :unprocessable_entity
+        render json: { errors: result.errors }, status: :unprocessable_content
       end
+    end
+
+    # POST /transactions/:id/unknown: "no idea" (stays in Outros, no more suggestions)
+    def mark_unknown
+      render_mark Transactions::MarkUnknown.call(Transaction.find(params[:id]))
+    end
+
+    # DELETE /transactions/:id/unknown
+    def unmark_unknown
+      render_mark Transactions::MarkUnknown.undo(Transaction.find(params[:id]))
     end
 
     private
 
+    def render_mark(result)
+      if result.success?
+        render json: TransactionPresenter.new(result.transaction.reload)
+      else
+        render json: { errors: result.errors }, status: :unprocessable_content
+      end
+    end
+
     def recategorize_params
       params.require(:transaction)
-            .permit(:subcategory_id, :transaction_type, :keyword, :apply_to_matching)
+            .permit(:subcategory_id, :transaction_type, :keyword, :apply_to_matching, :reason, :min_amount, :max_amount)
             .to_h
             .symbolize_keys
     end

@@ -11,6 +11,8 @@ class KeywordPresenter
       description: @keyword.description,
       color_code: @keyword.color_code,
       keyword_type: @keyword.keyword_type,
+      min_amount: @keyword.min_amount&.to_f,
+      max_amount: @keyword.max_amount&.to_f,
       subcategory_id: @keyword.subcategory_id,
       subcategory: subcategory_payload,
       created_at: @keyword.created_at,

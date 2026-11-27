@@ -2,7 +2,8 @@ module Transactions
   # Filters and paginates transactions for the review screen.
   #
   # Params (all optional): month ("YYYY-MM"), category_id, subcategory_id, transaction_type,
-  # q (text in the name), page (1-based), per_page (max MAX_PER_PAGE).
+  # q (text in the name), unknown ("true": only transactions marked "no idea"), page (1-based),
+  # per_page (max MAX_PER_PAGE).
   class Search
     DEFAULT_PER_PAGE = 50
     MAX_PER_PAGE = 200
@@ -20,7 +21,7 @@ module Transactions
     def call
       scope = filtered_scope
       Result.new(
-        transactions: scope.includes(subcategory: :category)
+        transactions: scope.includes(subcategory: :category, pending_category_suggestion: { subcategory: :category })
                            .order(transaction_date: :desc, id: :desc)
                            .offset((page - 1) * per_page)
                            .limit(per_page)
@@ -44,6 +45,7 @@ module Transactions
       scope = scope.joins(:subcategory).where(subcategories: { category_id: params[:category_id] }) if params[:category_id].present?
       scope = scope.where(transaction_type: params[:transaction_type]) if params[:transaction_type].present?
       scope = search(scope) if params[:q].present?
+      scope = scope.marked_unknown if ActiveModel::Type::Boolean.new.cast(params[:unknown])
       scope
     end
 

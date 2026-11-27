@@ -6,6 +6,7 @@ module Parsers
 
     def initialize(monthly_statement)
       @monthly_statement = monthly_statement
+      monthly_statement.statement_kind = self.class::STATEMENT_KIND if self.class.const_defined?(:STATEMENT_KIND)
     end
 
     def create_transaction(entry, raw_content)

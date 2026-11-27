@@ -7,11 +7,14 @@ RSpec.describe Categorization do
   it 'assigns the subcategory of the best matching keyword' do
     keyword = create(:keyword, name: 'IFOOD')
 
-    expect(described_class.call(entry)).to include(subcategory_id: keyword.subcategory_id, name: 'IFOOD RESTAURANTE', amount: 42.5)
+    expect(described_class.call(entry)).to include(
+      subcategory_id: keyword.subcategory_id, name: 'IFOOD RESTAURANTE', amount: 42.5,
+      keyword_id: keyword.id, categorization_source: 'keyword'
+    )
   end
 
-  it 'falls back to the "Outros" subcategory' do
-    expect(described_class.call(entry)[:subcategory_id]).to eq(other.id)
+  it 'falls back to the "Outros" subcategory and marks the entry uncategorized' do
+    expect(described_class.call(entry)).to include(subcategory_id: other.id, keyword_id: nil, categorization_source: 'uncategorized')
   end
 
   it 'keeps an explicit transaction_type' do
@@ -36,5 +39,30 @@ RSpec.describe Categorization do
 
     expect(Keyword).to have_received(:all).once
     expect(Subcategory).to have_received(:other_subcategory).once
+  end
+
+  describe 'rules with an amount range' do
+    let(:subscription) { create(:subcategory, name: 'Assinatura') }
+    let(:purchases) { create(:subcategory, name: 'Compras') }
+
+    before do
+      create(:keyword, name: 'AMAZON', subcategory: subscription, max_amount: 99.99)
+      create(:keyword, name: 'AMAZON', subcategory: purchases, min_amount: 100)
+    end
+
+    it 'picks the rule whose range contains the amount' do
+      expect(described_class.call(entry.merge(name: 'AMAZON MARKETPLACE', amount: 79.9))[:subcategory_id]).to eq(subscription.id)
+      expect(described_class.call(entry.merge(name: 'AMAZON MARKETPLACE', amount: 250))[:subcategory_id]).to eq(purchases.id)
+      expect(described_class.call(entry.merge(name: 'AMAZON MARKETPLACE', amount: -250))[:subcategory_id]).to eq(purchases.id)
+    end
+
+    it 'prefers a ranged rule over a plain one with the same score, and falls back to the plain one outside the range' do
+      plain = create(:subcategory, name: 'Geral')
+      create(:keyword, name: 'LOJA', subcategory: plain)
+      create(:keyword, name: 'LOJA', subcategory: purchases, min_amount: 500)
+
+      expect(described_class.call(entry.merge(name: 'LOJA X', amount: 600))[:subcategory_id]).to eq(purchases.id)
+      expect(described_class.call(entry.merge(name: 'LOJA X', amount: 50))[:subcategory_id]).to eq(plain.id)
+    end
   end
 end

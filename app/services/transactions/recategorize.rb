@@ -5,14 +5,29 @@ module Transactions
   # categorize this merchant correctly. With `apply_to_matching: true` it then re-runs matching on
   # every other transaction whose name contains the keyword, moving the ones for which the new
   # keyword is now the best match. Transactions matched more strongly by another keyword stay put.
+  #
+  # `source:` is "manual" (the owner picked it) or "ai_accepted" (the owner accepted a suggestion
+  # as is). Pending suggestions for every transaction this moves are marked superseded.
   class Recategorize
+    SOURCES = %w[manual ai_accepted].freeze
     Result = Struct.new(:success?, :transaction, :keyword, :updated_count, :errors, keyword_init: true)
 
     def self.call(transaction, **args)
       new(transaction, **args).call
     end
 
-    def initialize(transaction, subcategory_id: nil, transaction_type: nil, keyword: nil, apply_to_matching: false)
+    NOTE_LIMIT = 300
+
+    # `reason:` is the owner's explanation for a move, kept on the CategorizationEvent and sent to
+    # Claude as context for similar transactions. Ignored when the subcategory doesn't change.
+    def initialize(transaction, subcategory_id: nil, transaction_type: nil, keyword: nil, apply_to_matching: false,
+                   source: "manual", reason: nil, min_amount: nil, max_amount: nil)
+      raise ArgumentError, "Unknown source: #{source}" unless SOURCES.include?(source)
+
+      @source = source
+      @reason = reason.to_s.squish.truncate(NOTE_LIMIT).presence
+      @min_amount = min_amount.presence
+      @max_amount = max_amount.presence
       @transaction = transaction
       @subcategory_id = subcategory_id.presence
       @transaction_type = transaction_type.presence
@@ -23,7 +38,10 @@ module Transactions
     def call
       ActiveRecord::Base.transaction do
         transaction.assign_attributes({ subcategory_id: subcategory_id, transaction_type: transaction_type }.compact)
+        moved = transaction.subcategory_id_changed?
+        record_correction if moved
         transaction.save!
+        supersede_suggestions([ transaction.id ]) if moved
 
         keyword = create_keyword! if keyword_name
         updated = keyword && apply_to_matching ? apply_keyword(keyword) : 0
@@ -37,13 +55,29 @@ module Transactions
 
     private
 
-    attr_reader :transaction, :subcategory_id, :transaction_type, :keyword_name, :apply_to_matching
+    attr_reader :transaction, :subcategory_id, :transaction_type, :keyword_name, :apply_to_matching, :source, :reason, :min_amount, :max_amount
+
+    # The owner chose this subcategory by hand. The event keeps what it replaced, so repeated
+    # corrections of a merchant (or of one keyword's matches) can become rule suggestions.
+    def record_correction
+      transaction.categorization_events.build(
+        from_subcategory_id: transaction.subcategory_id_was,
+        to_subcategory_id: transaction.subcategory_id,
+        from_source: transaction.categorization_source,
+        to_source: source,
+        overridden_keyword_id: transaction.categorized_by_keyword? ? transaction.keyword_id : nil,
+        merchant_key: Transactions::Merchant.key(transaction),
+        note: reason
+      )
+      transaction.assign_attributes(categorization_source: source, keyword_id: nil, unknown_marked_at: nil)
+    end
 
     # Reuses the keyword when the subcategory already has it.
     def create_keyword!
       Keyword.find_or_create_by!(
         parsed_name: StringUtils.default_string_parse(keyword_name),
-        subcategory_id: transaction.subcategory_id
+        subcategory_id: transaction.subcategory_id,
+        min_amount: min_amount, max_amount: max_amount
       ) { |keyword| keyword.name = keyword_name }
     end
 
@@ -53,8 +87,17 @@ module Transactions
                               .where.not(subcategory_id: keyword.subcategory_id)
                               .where("parsed_name LIKE ?", "%#{ActiveRecord::Base.sanitize_sql_like(keyword.parsed_name)}%")
 
-      ids = candidates.select { |t| Matchers::DefaultMatcher.find_best_keyword_match(t.name, keywords)&.id == keyword.id }.map(&:id)
-      Transaction.where(id: ids).update_all(subcategory_id: keyword.subcategory_id, updated_at: Time.current)
+      ids = candidates.select { |t| Matchers::DefaultMatcher.find_best_keyword_match(t.name, keywords, amount: t.amount)&.id == keyword.id }
+                      .map(&:id)
+      supersede_suggestions(ids)
+      Transaction.where(id: ids).update_all(
+        subcategory_id: keyword.subcategory_id, keyword_id: keyword.id, categorization_source: "keyword", updated_at: Time.current
+      )
+    end
+
+    def supersede_suggestions(transaction_ids)
+      CategorySuggestion.pending.where(parsed_transaction_id: transaction_ids)
+                        .update_all(status: "superseded", decided_at: Time.current, updated_at: Time.current)
     end
   end
 end

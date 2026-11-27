@@ -16,7 +16,7 @@ module Api::V1
       if asset.save
         render json: AssetPresenter.new(asset).as_json, status: :created
       else
-        render json: asset.errors, status: :unprocessable_entity
+        render json: asset.errors, status: :unprocessable_content
       end
     end
 
@@ -24,7 +24,7 @@ module Api::V1
       if @asset.update(asset_params)
         render json: AssetPresenter.new(@asset).as_json
       else
-        render json: @asset.errors, status: :unprocessable_entity
+        render json: @asset.errors, status: :unprocessable_content
       end
     end
 

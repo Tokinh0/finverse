@@ -19,7 +19,7 @@ RSpec.describe 'Api::V1::Categories' do
   it 'returns validation errors' do
     post '/api/v1/categories', params: { category: { name: '' } }
 
-    expect(response).to have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
     expect(json['errors']).to include("Name can't be blank")
   end
 
@@ -45,7 +45,7 @@ RSpec.describe 'Api::V1::Categories' do
 
     delete "/api/v1/categories/#{fallback.id}"
 
-    expect(response).to have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
     expect(json['errors'].first).to match(/cannot be deleted/)
   end
 end

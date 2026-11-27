@@ -75,7 +75,7 @@ module Alerts
         end
         next unless twin
 
-        alert("duplicate", t, "Same merchant and amount as a charge on #{twin.transaction_date.to_date.strftime('%d/%m/%Y')}",
+        alert("duplicate", t, I18n.t("alerts.duplicate", date: I18n.l(twin.transaction_date.to_date, format: :short)),
               related_transaction_id: twin.id)
       end
     end
@@ -90,7 +90,7 @@ module Alerts
         first = charges.min_by { |t| [ t.transaction_date, t.id ] }
         next if first.amount < NEW_MERCHANT_MIN_AMOUNT
 
-        alert("new_merchant", first, "First charge from this merchant in the last #{HISTORY_MONTHS} months")
+        alert("new_merchant", first, I18n.t("alerts.new_merchant", months: HISTORY_MONTHS))
       end
     end
 
@@ -107,7 +107,7 @@ module Alerts
         next unless amounts.all? { |a| (a - reference).abs <= reference * RECURRING_STABLE_TOLERANCE }
         next unless (t.amount - reference).abs > reference * RECURRING_CHANGE_THRESHOLD
 
-        alert("amount_changed", t, "Recurring charge changed from #{brl(reference)} to #{brl(t.amount)}",
+        alert("amount_changed", t, I18n.t("alerts.amount_changed", from: brl(reference), to: brl(t.amount)),
               expected_amount: reference.to_f.round(2))
       end
     end
@@ -124,7 +124,8 @@ module Alerts
         typical = median(past)
         next unless t.amount > typical * UNUSUAL_MULTIPLIER
 
-        alert("unusual_amount", t, "#{(t.amount / typical).round(1)}× the usual #{brl(typical)} for #{t.subcategory.name}",
+        alert("unusual_amount", t, I18n.t("alerts.unusual_amount", ratio: (t.amount / typical).round(1), typical: brl(typical),
+                                                             subcategory: t.subcategory.name),
               expected_amount: typical.to_f.round(2))
       end
     end

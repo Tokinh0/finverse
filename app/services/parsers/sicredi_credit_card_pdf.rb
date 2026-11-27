@@ -9,6 +9,7 @@ module Parsers
   # Negative lines are either bill payments (ignored, they come from the checking
   # account) or refunds/reversals (stored as credits).
   class SicrediCreditCardPdf < BaseParser
+    STATEMENT_KIND = "credit_card"
     DATE = %r{\A\d{2}/[a-zç]{3}\s+\d{2}:\d{2}\z}i
     AMOUNT = /\A(-?)R\$\s*([\d.]+,\d{2})\z/
     DESCRIPTION_X = (230...345)

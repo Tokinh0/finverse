@@ -29,5 +29,11 @@ module Finverse
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
     config.autoload_paths << Rails.root.join("lib")
+
+    config.active_job.queue_adapter = :sidekiq
+
+    # The owner picks the language in Settings (AppSetting#locale); English is the default.
+    config.i18n.available_locales = [ :en, :"pt-BR" ]
+    config.i18n.default_locale = :en
   end
 end

@@ -1,0 +1,98 @@
+# Portuguese (Brazil) versions of en.yml, plus the Rails validation messages the app uses.
+pt-BR:
+  date:
+    formats:
+      short: "%d/%m/%Y"
+  ai:
+    language: "Brazilian Portuguese"
+    errors:
+      not_configured: "Nenhuma chave de API do Claude configurada."
+      invalid_key: "Sua chave de API do Claude foi recusada. Atualize-a em Configurações."
+      rate_limited: "O limite de uso do Claude foi atingido. As sugestões serão tentadas de novo em instantes."
+      billing: "Sua conta da Anthropic está sem crédito. Adicione crédito no Claude Console."
+      timeout: "O Claude demorou demais para responder. Tente de novo mais tarde."
+      unavailable: "Não foi possível acessar a API do Claude. Verifique a conexão e tente de novo."
+      server_error: "A API do Claude está com problemas. As sugestões serão tentadas de novo em instantes."
+      bad_request: "O Claude recusou a requisição (%{error}). Verifique o nome do modelo em Configurações."
+      api_error: "A API do Claude retornou um erro (HTTP %{status})."
+      refused: "O Claude se recusou a responder este lote."
+      truncated: "A resposta do Claude foi cortada. Tente de novo com menos transações."
+      invalid_json: "A resposta do Claude não era um JSON válido."
+  suggestions:
+    internal_error: "Algo deu errado ao gerar as sugestões."
+    nothing_to_suggest: "Nada para sugerir, ou as sugestões já estão sendo geradas"
+    already_decided: "Esta sugestão já foi %{status}"
+    already_categorized: "A transação já foi categorizada"
+    cannot_move: "Não foi possível mover a transação"
+    bulk_filter_required: "Informe min_confidence ou merchant_key"
+    statuses:
+      pending: "pendente"
+      accepted: "aceita"
+      rejected: "recusada"
+      dismissed: "dispensada"
+      superseded: "substituída"
+    history_reason:
+      one: "Você colocou 1 transação deste estabelecimento em %{label}"
+      other: "Você colocou %{count} transações deste estabelecimento em %{label}"
+    note_suffix: " (sua anotação: \"%{note}\")"
+  rules:
+    repeated_corrections: "Você moveu %{count} transações deste estabelecimento para %{label} manualmente"
+    overridden_rule: "Você moveu %{count} transações desta regra para %{label}"
+  transactions:
+    only_uncategorized_can_be_marked: "Só transações sem categoria podem ser marcadas"
+  statements:
+    already_imported: "Este arquivo já foi importado (extrato #%{id})"
+    transactions_already_imported: "%{count} de %{total} transações já foram importadas de outro extrato"
+    unsupported_file_type: "Tipo de arquivo não suportado: %{type}"
+  alerts:
+    duplicate: "Mesmo estabelecimento e valor de uma cobrança em %{date}"
+    new_merchant: "Primeira cobrança deste estabelecimento nos últimos %{months} meses"
+    amount_changed: "Cobrança recorrente mudou de %{from} para %{to}"
+    unusual_amount: "%{ratio}× o valor usual de %{typical} em %{subcategory}"
+  fallback:
+    category_undeletable: "A categoria padrão \"Outros\" não pode ser excluída"
+    subcategory_undeletable: "A subcategoria padrão \"Outros\" não pode ser excluída"
+    cannot_move_transactions: "Não foi possível mover as transações desta subcategoria: %{error}"
+  activerecord:
+    errors:
+      models:
+        keyword:
+          attributes:
+            max_amount:
+              below_minimum: "deve ser maior ou igual ao valor mínimo"
+    attributes:
+      category:
+        name: "Nome"
+        parsed_name: "Nome"
+      subcategory:
+        name: "Nome"
+        parsed_name: "Nome"
+        category: "Categoria"
+        subcategory_type: "Tipo"
+      keyword:
+        name: "Nome"
+        parsed_name: "Nome"
+        subcategory: "Subcategoria"
+        min_amount: "Valor mínimo"
+        max_amount: "Valor máximo"
+      transaction:
+        subcategory: "Subcategoria"
+        transaction_type: "Tipo"
+      app_setting:
+        claude_model: "Modelo do Claude"
+        locale: "Idioma"
+  errors:
+    format: "%{attribute} %{message}"
+    messages:
+      blank: "não pode ficar em branco"
+      taken: "já está em uso"
+      invalid: "não é válido"
+      inclusion: "não está incluído na lista"
+      required: "é obrigatório(a)"
+      not_a_number: "não é um número"
+      greater_than_or_equal_to: "deve ser maior ou igual a %{count}"
+      less_than_or_equal_to: "deve ser menor ou igual a %{count}"
+      in: "deve estar entre %{count}"
+      too_long:
+        one: "é longo demais (máximo: 1 caractere)"
+        other: "é longo demais (máximo: %{count} caracteres)"

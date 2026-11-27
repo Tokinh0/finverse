@@ -22,6 +22,62 @@ RSpec.describe Parsers::CsvParser do
       [ [ 'IFOOD RESTAURANTE', 60.28, 'debit' ], [ 'LOJA GRANDE', 1234.56, 'debit' ] ]
     )
     expect(statement.summary_lines.processed.count).to eq(2)
+    expect(statement.statement_kind).to eq('credit_card')
+  end
+
+  it 'stores refunds (negative amounts) as credits' do
+    refund = statement_with_file(
+      filename: 'fatura.csv', content_type: 'text/csv',
+      content: sicredi_csv('08/01/2025;ESTORNO LOJA;;"R$ -45,90";;;Cartao final 1')
+    )
+
+    described_class.new(refund).call
+
+    expect(refund.transactions.pluck(:name, :amount, :transaction_type)).to eq([ [ 'ESTORNO LOJA', 45.9, 'credit' ] ])
+  end
+
+  it 'stores refunds (negative amounts) as credits' do
+    refund = statement_with_file(
+      filename: 'fatura.csv', content_type: 'text/csv',
+      content: sicredi_csv('08/01/2025;ESTORNO LOJA;;"R$ -45,90";;;Cartao final 1')
+    )
+
+    described_class.new(refund).call
+
+    expect(refund.transactions.pluck(:name, :amount, :transaction_type)).to eq([ [ 'ESTORNO LOJA', 45.9, 'credit' ] ])
+  end
+
+  it 'stores refunds (negative amounts) as credits' do
+    refund = statement_with_file(
+      filename: 'fatura.csv', content_type: 'text/csv',
+      content: sicredi_csv('08/01/2025;ESTORNO LOJA;;"R$ -45,90";;;Cartao final 1')
+    )
+
+    described_class.new(refund).call
+
+    expect(refund.transactions.pluck(:name, :amount, :transaction_type)).to eq([ [ 'ESTORNO LOJA', 45.9, 'credit' ] ])
+  end
+
+  it 'stores refunds (negative amounts) as credits' do
+    refund = statement_with_file(
+      filename: 'fatura.csv', content_type: 'text/csv',
+      content: sicredi_csv('08/01/2025;ESTORNO LOJA;;"R$ -45,90";;;Cartao final 1')
+    )
+
+    described_class.new(refund).call
+
+    expect(refund.transactions.pluck(:name, :amount, :transaction_type)).to eq([ [ 'ESTORNO LOJA', 45.9, 'credit' ] ])
+  end
+
+  it 'stores refunds (negative amounts) as credits' do
+    refund = statement_with_file(
+      filename: 'fatura.csv', content_type: 'text/csv',
+      content: sicredi_csv('08/01/2025;ESTORNO LOJA;;"R$ -45,90";;;Cartao final 1')
+    )
+
+    described_class.new(refund).call
+
+    expect(refund.transactions.pluck(:name, :amount, :transaction_type)).to eq([ [ 'ESTORNO LOJA', 45.9, 'credit' ] ])
   end
 
   it 'ignores card bill payments and records malformed rows as skipped' do
