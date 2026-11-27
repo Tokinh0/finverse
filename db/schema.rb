@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_12_18_202559) do
+ActiveRecord::Schema[7.1].define(version: 2026_11_27_011057) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -40,6 +40,15 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_18_202559) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "alert_dismissals", force: :cascade do |t|
+    t.bigint "parsed_transaction_id", null: false
+    t.string "kind", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["parsed_transaction_id", "kind"], name: "index_alert_dismissals_on_parsed_transaction_id_and_kind", unique: true
+    t.index ["parsed_transaction_id"], name: "index_alert_dismissals_on_parsed_transaction_id"
   end
 
   create_table "assets", force: :cascade do |t|
@@ -123,6 +132,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_18_202559) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "alert_dismissals", "transactions", column: "parsed_transaction_id", on_delete: :cascade
   add_foreign_key "keywords", "subcategories"
   add_foreign_key "subcategories", "categories"
   add_foreign_key "summary_lines", "monthly_statements"

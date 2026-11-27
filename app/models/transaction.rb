@@ -4,6 +4,7 @@ class Transaction < ApplicationRecord
   belongs_to :subcategory
   belongs_to :monthly_statement
   has_one :summary_line, foreign_key: :parsed_transaction_id, dependent: :destroy
+  has_many :alert_dismissals, foreign_key: :parsed_transaction_id, dependent: :delete_all
 
   enum transaction_type: { credit: 'credit', debit: 'debit', unknown: 'unknown' }
 
