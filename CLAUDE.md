@@ -26,10 +26,10 @@ Finverse API: a Rails 7.1 API-only app (Ruby 3.2.0, Postgres 14) that imports Br
 
 ## Commands
 
-Everything runs through Docker Compose (`api` on :3000, `db`, `redis`):
+Everything runs through Docker Compose (`api` on :3000, `sidekiq` for background jobs, `db`, `redis`):
 ```bash
 docker compose up -d
-docker compose up -d --build api                  # after changing the Gemfile
+docker compose up -d --build api sidekiq          # after changing the Gemfile (both use the same image)
 docker compose exec api bin/rails db:prepare
 docker compose exec api bin/rails db:seed         # categories/subcategories/keywords/assets from db/seed_data
 docker compose exec api bin/rails db:rebuild      # custom: drop + create + migrate + seed
@@ -53,6 +53,8 @@ Controllers in `app/controllers/api/v1/` stay thin. They permit params, call a m
 
 **Categorization source:** every transaction records how it got its subcategory in `categorization_source` (`keyword` with `keyword_id`, `ai_accepted`, `manual`, or `uncategorized` = still in the Outros fallback). `Transactions::Recategorize` marks moves `manual` and writes a `CategorizationEvent` (from/to subcategory and source, the overridden keyword, `merchant_key`); keyword re-application marks the moved transactions `keyword`. Keep these fields in sync in any new code that changes a transaction's subcategory.
 
+**Settings and the Claude API key:** `AppSetting.current` is the single settings row. `claude_api_key` is encrypted with Active Record Encryption (keys under `active_record_encryption` in `config/credentials.yml.enc`; `config/environments/test.rb` sets fixed test keys so specs and CI need no credentials). The key never leaves the API: `ClaudeSettingPresenter` sends only `masked_key`. `GET/PUT/DELETE /settings/claude` manage it, and `PUT` checks a new key with one `models.list` call (a rejected key isn't saved; an unreachable API saves it with a `warning`). The model is `claude_model`, else `ENV["CLAUDE_MODEL"]`, else `AppSetting::DEFAULT_CLAUDE_MODEL` (`claude-haiku-5-5`, chosen to keep token spend low). `Ai::Client` wraps the `anthropic` gem and maps SDK errors to `Ai::Client::Error#code` (`invalid_key`, `billing`, `rate_limited`, `timeout`, `unavailable`, `bad_request`, `api_error`) with messages safe to show in the UI. Jobs run on Sidekiq (`config.active_job.queue_adapter`; `:test` in specs).
+
 **Name normalization:** models that include `Normalizer` (Category, Subcategory, Keyword, Transaction) derive `parsed_name` from every `name=` assignment via `StringUtils.default_string_parse` (stripped, upcased, whitespace replaced by `_`). Uniqueness validations, matching and seeding all compare `parsed_name`. `StringUtils` is not mixed in globally, so call `StringUtils.default_string_parse` from service and class-level code.
 
 **Transaction review:** `Transactions::Search` backs `GET /transactions` (filters: `month`, `category_id`, `subcategory_id`, `transaction_type`, `q`; paginated; `meta.months` lists the months that have data). `Transactions::Recategorize` backs `PATCH /transactions/:id`. It changes the subcategory or type, can create a keyword for the new subcategory, and with `apply_to_matching` moves other transactions for which that keyword is now the best match.
@@ -71,4 +73,4 @@ Controllers in `app/controllers/api/v1/` stay thin. They permit params, call a m
 
 ## Tests
 
-RSpec + FactoryBot (all factories live in `spec/factories/factories.rb`) + shoulda-matchers + WebMock (real HTTP is blocked). Every model, service, presenter and endpoint has a spec under the matching `spec/` folder, and new features need one too. Parser specs never use real bank statements. PDFs are built from `[x, y, text]` runs with `fake_pdf_reader` (`spec/support/fake_pdf.rb`), and Sicredi CSVs come from `sicredi_csv(*rows)` (`spec/support/statement_helpers.rb`). Use those helpers rather than committing statement files.
+RSpec + FactoryBot (all factories live in `spec/factories/factories.rb`) + shoulda-matchers + WebMock (real HTTP is blocked). Stub the Claude API with the helpers in `spec/support/claude_api_helpers.rb`; specs never call it for real. Every model, service, presenter and endpoint has a spec under the matching `spec/` folder, and new features need one too. Parser specs never use real bank statements. PDFs are built from `[x, y, text]` runs with `fake_pdf_reader` (`spec/support/fake_pdf.rb`), and Sicredi CSVs come from `sicredi_csv(*rows)` (`spec/support/statement_helpers.rb`). Use those helpers rather than committing statement files.

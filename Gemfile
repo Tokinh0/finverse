@@ -28,6 +28,10 @@ gem "bootsnap", ">= 1.1.0", require: false
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin AJAX possible
 gem "rack-cors"
 gem "pdf-reader"
+# Background jobs (Claude categorization suggestions run after each import)
+gem "sidekiq", "~> 8.1"
+# Official Claude API SDK
+gem "anthropic", "~> 2.14"
 # json 3.x drops options ActiveSupport 7.1's to_json still passes ("unknown keyword: quirks_mode").
 # Remove the pin when upgrading Rails.
 gem "json", "~> 2.10"

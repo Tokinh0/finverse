@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_11_27_120000) do
+ActiveRecord::Schema[7.1].define(version: 2026_11_27_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -49,6 +49,13 @@ ActiveRecord::Schema[7.1].define(version: 2026_11_27_120000) do
     t.datetime "updated_at", null: false
     t.index ["parsed_transaction_id", "kind"], name: "index_alert_dismissals_on_parsed_transaction_id_and_kind", unique: true
     t.index ["parsed_transaction_id"], name: "index_alert_dismissals_on_parsed_transaction_id"
+  end
+
+  create_table "app_settings", force: :cascade do |t|
+    t.text "claude_api_key"
+    t.string "claude_model"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "assets", force: :cascade do |t|
