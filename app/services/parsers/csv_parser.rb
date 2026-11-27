@@ -31,6 +31,8 @@ module Parsers
       parsed_name = default_string_parse(name)
       return if DESCRIPTIONS_TO_IGNORE.any? { |w| parsed_name.include?(w) }
 
+      # Refunds and reversals are exported as "R$ -12,34"; the sign is the only hint.
+      refund = parts[3].include?("-")
       raw_value_part1 = parts[3].gsub(/\D/, "")
       raw_value_part2 = parts[4].gsub(/\D/, "")
       return if raw_value_part1.blank? || raw_value_part2.blank?
@@ -49,7 +51,7 @@ module Parsers
         name: name,
         amount: amount,
         transaction_date: DateTime.parse(parts[0]),
-        transaction_type: "debit"
+        transaction_type: refund ? "credit" : "debit"
       }
 
       create_transaction(new_entry, parts)

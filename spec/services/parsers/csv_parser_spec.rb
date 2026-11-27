@@ -24,6 +24,17 @@ RSpec.describe Parsers::CsvParser do
     expect(statement.summary_lines.processed.count).to eq(2)
   end
 
+  it 'stores refunds (negative amounts) as credits' do
+    refund = statement_with_file(
+      filename: 'fatura.csv', content_type: 'text/csv',
+      content: sicredi_csv('08/01/2025;ESTORNO LOJA;;"R$ -45,90";;;Cartao final 1')
+    )
+
+    described_class.new(refund).call
+
+    expect(refund.transactions.pluck(:name, :amount, :transaction_type)).to eq([ [ 'ESTORNO LOJA', 45.9, 'credit' ] ])
+  end
+
   it 'ignores card bill payments and records malformed rows as skipped' do
     described_class.new(statement).call
 
