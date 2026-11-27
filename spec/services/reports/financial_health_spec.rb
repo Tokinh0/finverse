@@ -26,6 +26,7 @@ RSpec.describe Reports::FinancialHealth do
     tx(transfer, 999, Date.new(2025, 9, 3)) # ignored
     # last year, for the year comparison
     tx(food, 80, Date.new(2024, 9, 10))
+    tx(food, 500, Date.new(2024, 11, 10)) # after September: not compared with 2025 (Jan-Sep)
   end
 
   subject(:report) { described_class.call(period: "3") }
@@ -63,12 +64,13 @@ RSpec.describe Reports::FinancialHealth do
   it "summarizes the year against the previous one" do
     year = report[:year]
 
-    expect(year).to include(year: 2025, previous_year: 2024, months_with_data: 3)
+    expect(year).to include(year: 2025, previous_year: 2024, months_with_data: 3, compared_through_month: 9)
     expect(year[:monthly][8]).to include(month: 9, has_data: true, expenses: 250.0, previous_year_expenses: 80.0)
     expect(year[:monthly][0]).to include(has_data: false, previous_year_expenses: nil)
     expect(year[:best_month]).to include(month: 9, net: 1750.0)
     expect(year[:worst_month]).to include(month: 8, net: -250.0)
     expect(year[:categories].find { |c| c[:name] == "Conforto" }).to include(total: 350.0, previous_total: 80.0)
+    expect(year[:previous_totals]).to include(expenses: 80.0)
     expect(year[:top_merchants].first).to eq(name: "IFOOD 123", total: 300.0, count: 1, subcategory: "Food")
   end
 

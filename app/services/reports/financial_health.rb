@@ -7,7 +7,8 @@ module Reports
   # - trends:     monthly spending per category over the last 12 months, with last month vs the
   #               month before and vs the 6 months before it
   # - year:       a calendar year month by month against the previous year, category totals,
-  #               top merchants and the best and worst months
+  #               top merchants and the best and worst months. Totals of a year in progress are
+  #               compared with the same months of the previous year.
   #
   # Definitions: income = credits in "gain" subcategories; spending = debits minus refunds in
   # "expense" subcategories; invested = debits minus redemptions in "investment" subcategories.
@@ -160,19 +161,23 @@ module Reports
         )
       end
       with_data = monthly.select { |m| m[:has_data] }
+      # Compare a year in progress with the same months of the previous year, not all of it.
+      through_month = with_data.map { |m| m[:month] }.max || 12
+      previous_same_months = previous.select { |t| t.transaction_date.month <= through_month }
 
       {
         year: @year,
         previous_year: @year - 1,
         months_with_data: with_data.size,
+        compared_through_month: through_month,
         totals: totals(current),
-        previous_totals: previous.any? ? totals(previous) : nil,
+        previous_totals: previous_same_months.any? ? totals(previous_same_months) : nil,
         monthly: monthly,
         best_month: with_data.max_by { |m| m[:net] }&.slice(:month, :net, :income, :expenses),
         worst_month: with_data.min_by { |m| m[:net] }&.slice(:month, :net, :income, :expenses),
         categories: expense_categories.map do |category|
           spent = expenses_of(current.select { |t| t.subcategory.category_id == category.id })
-          before = expenses_of(previous.select { |t| t.subcategory.category_id == category.id })
+          before = expenses_of(previous_same_months.select { |t| t.subcategory.category_id == category.id })
           category_json(category).merge(total: money(spent), previous_total: money(before), change_pct: change(spent, before))
         end.sort_by { |c| -c[:total] },
         top_merchants: top_merchants(current)
