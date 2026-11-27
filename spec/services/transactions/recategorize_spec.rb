@@ -56,4 +56,41 @@ RSpec.describe Transactions::Recategorize do
     expect(result.errors.first).to match(/bogus/)
     expect(transaction.reload.subcategory).to eq(fallback)
   end
+
+  describe 'categorization tracking' do
+    it 'marks the transaction manual and records the correction' do
+      result = described_class.call(transaction, subcategory_id: food.id)
+
+      expect(result.transaction.reload).to have_attributes(categorization_source: 'manual', keyword_id: nil)
+      expect(transaction.categorization_events.sole).to have_attributes(
+        from_subcategory: fallback, to_subcategory: food, from_source: 'uncategorized', to_source: 'manual',
+        overridden_keyword_id: nil, merchant_key: 'LANCHONETE_EXEMPLO'
+      )
+    end
+
+    it 'remembers which keyword the owner overrode' do
+      keyword = create(:keyword, name: 'LANCHONETE', subcategory: create(:subcategory, name: 'Snacks'))
+      transaction.update!(subcategory: keyword.subcategory, keyword: keyword, categorization_source: 'keyword')
+
+      described_class.call(transaction, subcategory_id: food.id)
+
+      expect(transaction.categorization_events.sole).to have_attributes(from_source: 'keyword', overridden_keyword_id: keyword.id)
+    end
+
+    it 'records nothing when only the type changes' do
+      described_class.call(transaction, transaction_type: 'credit')
+
+      expect(CategorizationEvent.count).to eq(0)
+      expect(transaction.reload.categorization_source).to eq('uncategorized')
+    end
+
+    it 'marks transactions moved by the new keyword as categorized by it' do
+      other = create(:transaction, subcategory: fallback, name: 'IFD PIZZARIA')
+
+      result = described_class.call(transaction, subcategory_id: food.id, keyword: 'IFD', apply_to_matching: true)
+
+      expect(other.reload).to have_attributes(categorization_source: 'keyword', keyword_id: result.keyword.id)
+      expect(other.categorization_events).to be_empty
+    end
+  end
 end

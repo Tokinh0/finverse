@@ -35,5 +35,6 @@ RSpec.describe Parsers::SicrediCreditCardPdf do
     expect(statement.transactions.pluck(:name, :transaction_type)).to contain_exactly(
       [ 'Lanchonete Exemplo Ltda', 'debit' ], [ 'Loja Parcelada', 'debit' ], [ 'Estorno Loja', 'credit' ]
     )
+    expect(statement.statement_kind).to eq('credit_card')
   end
 end

@@ -23,6 +23,7 @@ module Transactions
     def call
       ActiveRecord::Base.transaction do
         transaction.assign_attributes({ subcategory_id: subcategory_id, transaction_type: transaction_type }.compact)
+        record_correction if transaction.subcategory_id_changed?
         transaction.save!
 
         keyword = create_keyword! if keyword_name
@@ -39,6 +40,20 @@ module Transactions
 
     attr_reader :transaction, :subcategory_id, :transaction_type, :keyword_name, :apply_to_matching
 
+    # The owner chose this subcategory by hand. The event keeps what it replaced, so repeated
+    # corrections of a merchant (or of one keyword's matches) can become rule suggestions.
+    def record_correction
+      transaction.categorization_events.build(
+        from_subcategory_id: transaction.subcategory_id_was,
+        to_subcategory_id: transaction.subcategory_id,
+        from_source: transaction.categorization_source,
+        to_source: "manual",
+        overridden_keyword_id: transaction.categorized_by_keyword? ? transaction.keyword_id : nil,
+        merchant_key: Transactions::Merchant.key(transaction)
+      )
+      transaction.assign_attributes(categorization_source: "manual", keyword_id: nil)
+    end
+
     # Reuses the keyword when the subcategory already has it.
     def create_keyword!
       Keyword.find_or_create_by!(
@@ -54,7 +69,9 @@ module Transactions
                               .where("parsed_name LIKE ?", "%#{ActiveRecord::Base.sanitize_sql_like(keyword.parsed_name)}%")
 
       ids = candidates.select { |t| Matchers::DefaultMatcher.find_best_keyword_match(t.name, keywords)&.id == keyword.id }.map(&:id)
-      Transaction.where(id: ids).update_all(subcategory_id: keyword.subcategory_id, updated_at: Time.current)
+      Transaction.where(id: ids).update_all(
+        subcategory_id: keyword.subcategory_id, keyword_id: keyword.id, categorization_source: "keyword", updated_at: Time.current
+      )
     end
   end
 end

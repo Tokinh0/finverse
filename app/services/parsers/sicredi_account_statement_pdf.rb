@@ -8,6 +8,7 @@ module Parsers
   # Long descriptions wrap above/below the date line, so rows are rebuilt from
   # positioned text runs instead of plain text lines.
   class SicrediAccountStatementPdf < BaseParser
+    STATEMENT_KIND = "checking_account"
     DATE = %r{\A\d{2}/\d{2}/\d{4}\z}
     AMOUNT = /\A([+-])\s*R\$\s*([\d.]+,\d{2})\z/
     DESCRIPTION_X = (100...490)

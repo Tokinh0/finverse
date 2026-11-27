@@ -2,6 +2,7 @@ class Keyword < ApplicationRecord
   include Normalizer
 
   belongs_to :subcategory
+  has_many :transactions, dependent: :nullify
 
   validates :name, presence: true
   validates :parsed_name, uniqueness: { scope: :subcategory_id }

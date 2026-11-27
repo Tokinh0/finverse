@@ -9,12 +9,13 @@ class Categorization
 
   def call(entry)
     match = Matchers::DefaultMatcher.find_best_keyword_match(entry[:name], keywords)
-    subcategory_id = match&.subcategory_id || fallback_subcategory.id
 
     {
       name: entry[:name],
       amount: entry[:amount],
-      subcategory_id: subcategory_id,
+      subcategory_id: match&.subcategory_id || fallback_subcategory.id,
+      keyword_id: match&.id,
+      categorization_source: match ? "keyword" : "uncategorized",
       transaction_date: entry[:transaction_date],
       transaction_type: entry[:transaction_type] || infer_transaction_type(entry)
     }

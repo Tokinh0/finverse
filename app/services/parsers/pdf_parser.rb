@@ -16,6 +16,7 @@ module Parsers
         next layout_parser.new(monthly_statement, reader).call if layout_parser
 
         # Legacy Sicredi extrato layout (one transaction per text line).
+        monthly_statement.statement_kind = "checking_account"
         lines = reader.pages.flat_map(&:text).flat_map(&:lines)
         parse_lines(lines)
       end

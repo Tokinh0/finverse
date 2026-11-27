@@ -2,6 +2,7 @@ require "csv"
 
 module Parsers
   class CsvParser < BaseParser
+    STATEMENT_KIND = "credit_card"
     CSV_CONTENT_START_LINE = 15
     DESCRIPTIONS_TO_IGNORE = [ "PAG_FAT_DEB_CC" ]
 

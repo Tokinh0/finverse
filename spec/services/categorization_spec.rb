@@ -7,11 +7,14 @@ RSpec.describe Categorization do
   it 'assigns the subcategory of the best matching keyword' do
     keyword = create(:keyword, name: 'IFOOD')
 
-    expect(described_class.call(entry)).to include(subcategory_id: keyword.subcategory_id, name: 'IFOOD RESTAURANTE', amount: 42.5)
+    expect(described_class.call(entry)).to include(
+      subcategory_id: keyword.subcategory_id, name: 'IFOOD RESTAURANTE', amount: 42.5,
+      keyword_id: keyword.id, categorization_source: 'keyword'
+    )
   end
 
-  it 'falls back to the "Outros" subcategory' do
-    expect(described_class.call(entry)[:subcategory_id]).to eq(other.id)
+  it 'falls back to the "Outros" subcategory and marks the entry uncategorized' do
+    expect(described_class.call(entry)).to include(subcategory_id: other.id, keyword_id: nil, categorization_source: 'uncategorized')
   end
 
   it 'keeps an explicit transaction_type' do

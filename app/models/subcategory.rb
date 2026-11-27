@@ -40,7 +40,10 @@ class Subcategory < ApplicationRecord
     end
     return unless transactions.exists?
 
-    transactions.update_all(subcategory_id: self.class.other_subcategory.id, updated_at: Time.current)
+    transactions.update_all(
+      subcategory_id: self.class.other_subcategory.id, categorization_source: "uncategorized", keyword_id: nil,
+      updated_at: Time.current
+    )
   rescue RuntimeError => e
     errors.add(:base, "Cannot move this subcategory's transactions: #{e.message}")
     throw :abort

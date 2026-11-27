@@ -29,6 +29,7 @@ RSpec.describe Parsers::SicrediAccountStatementPdf do
     expect(statement.transactions.order(:transaction_date).pluck(:name, :amount, :transaction_type)).to eq(
       [ [ 'PAGAMENTO PIX 123 JOHN', 19.0, 'debit' ], [ 'RECEBIMENTO PIX', 1000.5, 'credit' ] ]
     )
+    expect(statement.statement_kind).to eq('checking_account')
   end
 
   it 'ignores card bill payments and records rows without an amount as failed' do
