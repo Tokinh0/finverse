@@ -61,5 +61,13 @@ RSpec.describe 'Api::V1::Transactions' do
 
       expect(json['rule_nudge']).to be_nil
     end
+
+    it 'saves the reason for the change' do
+      transaction = create(:transaction, name: 'PIX MARIA', subcategory: fallback)
+
+      patch "/api/v1/transactions/#{transaction.id}", params: { transaction: { subcategory_id: food.id, reason: 'Monthly rent' } }, as: :json
+
+      expect(transaction.categorization_events.sole.note).to eq('Monthly rent')
+    end
   end
 end

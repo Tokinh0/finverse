@@ -11,6 +11,9 @@ class CategorizationEvent < ApplicationRecord
 
   validates :from_source, :to_source, inclusion: { in: SOURCES }
   validates :merchant_key, presence: true
+  validates :note, length: { maximum: 300 }
+
+  scope :with_notes, -> { where.not(note: [ nil, "" ]) }
 
   scope :overriding_keywords, -> { where.not(overridden_keyword_id: nil) }
 end

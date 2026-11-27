@@ -16,11 +16,16 @@ module Transactions
       new(transaction, **args).call
     end
 
+    NOTE_LIMIT = 300
+
+    # `reason:` is the owner's explanation for a move, kept on the CategorizationEvent and sent to
+    # Claude as context for similar transactions. Ignored when the subcategory doesn't change.
     def initialize(transaction, subcategory_id: nil, transaction_type: nil, keyword: nil, apply_to_matching: false,
-                   source: "manual")
+                   source: "manual", reason: nil)
       raise ArgumentError, "Unknown source: #{source}" unless SOURCES.include?(source)
 
       @source = source
+      @reason = reason.to_s.squish.truncate(NOTE_LIMIT).presence
       @transaction = transaction
       @subcategory_id = subcategory_id.presence
       @transaction_type = transaction_type.presence
@@ -48,7 +53,7 @@ module Transactions
 
     private
 
-    attr_reader :transaction, :subcategory_id, :transaction_type, :keyword_name, :apply_to_matching, :source
+    attr_reader :transaction, :subcategory_id, :transaction_type, :keyword_name, :apply_to_matching, :source, :reason
 
     # The owner chose this subcategory by hand. The event keeps what it replaced, so repeated
     # corrections of a merchant (or of one keyword's matches) can become rule suggestions.
@@ -59,7 +64,8 @@ module Transactions
         from_source: transaction.categorization_source,
         to_source: source,
         overridden_keyword_id: transaction.categorized_by_keyword? ? transaction.keyword_id : nil,
-        merchant_key: Transactions::Merchant.key(transaction)
+        merchant_key: Transactions::Merchant.key(transaction),
+        note: reason
       )
       transaction.assign_attributes(categorization_source: source, keyword_id: nil)
     end

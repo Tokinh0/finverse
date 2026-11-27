@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_11_27_190000) do
+ActiveRecord::Schema[7.1].define(version: 2026_11_27_210000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -89,6 +89,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_11_27_190000) do
     t.string "merchant_key", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "note", limit: 300
     t.index ["from_subcategory_id"], name: "index_categorization_events_on_from_subcategory_id"
     t.index ["merchant_key"], name: "index_categorization_events_on_merchant_key"
     t.index ["overridden_keyword_id"], name: "index_categorization_events_on_overridden_keyword_id"

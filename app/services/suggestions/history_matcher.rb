@@ -20,6 +20,7 @@ module Suggestions
       return {} if keys.empty?
 
       picks = confirmed_picks(keys)
+      notes = latest_notes(keys)
       rejected = Rejections.by_merchant(keys)
       names = Subcategory.includes(:category).index_by(&:id)
 
@@ -32,11 +33,17 @@ module Suggestions
         next if confidence < MIN_CONFIDENCE
 
         label = names[subcategory_id] && "#{names[subcategory_id].category.name} / #{names[subcategory_id].name}"
-        matches[key] = Match.new(
-          subcategory_id: subcategory_id, confidence: confidence,
-          reason: "You put #{count} #{'transaction'.pluralize(count)} from this merchant in #{label}"
-        )
+        reason = "You put #{count} #{'transaction'.pluralize(count)} from this merchant in #{label}"
+        note = notes[[ key, subcategory_id ]]
+        reason += " (your note: \"#{note}\")" if note
+        matches[key] = Match.new(subcategory_id: subcategory_id, confidence: confidence, reason: reason.truncate(250))
       end
+    end
+
+    # @return [Hash{Array(String, Integer) => String}] latest note per merchant and subcategory
+    def latest_notes(keys)
+      CategorizationEvent.with_notes.where(merchant_key: keys.to_a).order(:created_at)
+                         .each_with_object({}) { |event, notes| notes[[ event.merchant_key, event.to_subcategory_id ]] = event.note }
     end
 
     # @return [Hash{String => Array<Integer>}] subcategory ids the owner chose, per merchant key

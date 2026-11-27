@@ -93,4 +93,20 @@ RSpec.describe Transactions::Recategorize do
       expect(other.categorization_events).to be_empty
     end
   end
+
+  describe 'reason' do
+    it "keeps the owner's reason on the correction, tidied and capped" do
+      described_class.call(transaction, subcategory_id: food.id, reason: "  rent for the\n flat  #{'x' * 400}")
+
+      note = transaction.categorization_events.sole.note
+      expect(note).to start_with('rent for the flat x')
+      expect(note.length).to eq(300)
+    end
+
+    it 'ignores a blank reason' do
+      described_class.call(transaction, subcategory_id: food.id, reason: '  ')
+
+      expect(transaction.categorization_events.sole.note).to be_nil
+    end
+  end
 end

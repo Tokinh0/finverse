@@ -9,6 +9,8 @@ module Ai
     MAX_EXAMPLES_PER_ITEM = 2
     MAX_EXAMPLES = 40
     MAX_CORRECTIONS = 30
+    MAX_NOTES = 20
+    MAX_NOTE_LENGTH = 200
     EXAMPLE_SOURCES = %w[manual ai_accepted keyword].freeze
     # Tokens too common in bank descriptions to say anything about the merchant.
     GENERIC_TOKENS = %w[
@@ -32,6 +34,7 @@ module Ai
         rule_issues: rule_issues,
         examples: examples,
         corrections: corrections,
+        notes: notes,
         rejected_rules: Rules::Rejections.recent,
         items: items.map { |id, group| item(id, group) }
       }
@@ -73,6 +76,25 @@ module Ai
                          .group(:merchant_key, :to_subcategory_id).having("COUNT(*) >= 2")
                          .order(Arel.sql("COUNT(*) DESC")).limit(MAX_CORRECTIONS).count
                          .map { |(key, subcategory_id), count| [ Suggestions::Privacy.scrub(key), subcategory_id, count ] }
+    end
+
+    # The owner's own explanations for past corrections: [merchant, subcategory id, note].
+    # Notes about merchants in this batch come first, then the most recent ones.
+    def notes
+      events = CategorizationEvent.with_notes.where(to_subcategory_id: allowed_subcategory_ids).order(created_at: :desc).limit(200).to_a
+      batch_keys = groups.map(&:merchant_key).to_set
+      batch_tokens = groups.flat_map { tokens(_1.merchant_key) }.to_set
+
+      relevance = lambda do |event|
+        next 0 if batch_keys.include?(event.merchant_key)
+
+        tokens(event.merchant_key).any? { batch_tokens.include?(_1) } ? 1 : 2
+      end
+
+      events.sort_by { |event| [ relevance.call(event), -event.created_at.to_f ] }
+            .uniq { [ _1.merchant_key, _1.to_subcategory_id ] }
+            .first(MAX_NOTES)
+            .map { [ Suggestions::Privacy.scrub(_1.merchant_key), _1.to_subcategory_id, Suggestions::Privacy.scrub(_1.note).truncate(MAX_NOTE_LENGTH) ] }
     end
 
     def item(id, group)

@@ -20,7 +20,7 @@ RSpec.describe Ai::Suggester do
     body = claude_request_body
     expect(body).to include('model' => 'claude-haiku-5-5', 'max_tokens' => 16_000)
     expect(body['output_config']).to include('effort' => 'low', 'format' => a_hash_including('type' => 'json_schema'))
-    expect(body['system']).to include('categorize bank transactions')
+    expect(body['system']).to include('categorize bank transactions', "`notes` are the owner's own explanations")
     expect(JSON.parse(body['messages'].first['content'])['items'].first).to include('id' => 1, 'name' => 'PADARIA SOL')
     expect(result.suggestions.sole).to have_attributes(group: group, subcategory_id: bakery.id, confidence: 0.9, reason: 'Bakery')
     expect(result.rule_suggestions).to eq([ { action: 'create', keyword_id: nil, keyword: 'PADARIA', subcategory_id: bakery.id,

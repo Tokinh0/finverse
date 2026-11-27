@@ -44,4 +44,11 @@ RSpec.describe Suggestions::HistoryMatcher do
 
     expect(described_class.call([ group('PADARIA EXEMPLO') ])).to eq({})
   end
+
+  it "quotes the owner's latest note in the reason" do
+    transaction = confirmed('PADARIA EXEMPLO', bakery)
+    create(:categorization_event, parsed_transaction: transaction, to_subcategory: bakery, note: 'Breakfast place near work')
+
+    expect(described_class.call([ group('PADARIA EXEMPLO') ])['PADARIA_EXEMPLO'].reason).to end_with('(your note: "Breakfast place near work")')
+  end
 end

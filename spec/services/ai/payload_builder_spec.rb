@@ -58,4 +58,19 @@ RSpec.describe Ai::PayloadBuilder do
     expect(payload[:corrections]).to eq([ [ 'SOL', market.id, 3 ] ])
     expect(payload[:rejected_rules]).to eq([ [ 'create', 'LUA', market.id ] ])
   end
+
+  it "sends the owner's notes, scrubbed, those about the batch's merchants first" do
+    market = create(:subcategory, name: 'Mercado')
+    noted = lambda do |name, note, subcategory|
+      transaction = create(:transaction, name: name, subcategory: subcategory, categorization_source: 'manual')
+      create(:categorization_event, parsed_transaction: transaction, to_subcategory: subcategory, note: note)
+    end
+    noted.call('LOJA ANTIGA', 'old note', market)
+    noted.call('PADARIA SOL', 'Paid with CPF 123.456.789-09, it is my bakery', bakery)
+    noted.call('OUTRA COISA', '', market)
+
+    notes = described_class.new([ group('PADARIA SOL') ]).call[:payload][:notes]
+
+    expect(notes).to eq([ [ 'PADARIA_SOL', bakery.id, 'Paid with CPF #, it is my bakery' ], [ 'LOJA_ANTIGA', market.id, 'old note' ] ])
+  end
 end

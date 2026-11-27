@@ -15,6 +15,8 @@ module Ai
       ([keyword, subcategory id]; keywords are upper case with spaces as "_") and `examples` are
       past transactions they categorized ([name, subcategory id]). `statement` says whether the
       item came from a credit card bill or a checking account; `type` is debit or credit.
+      `notes` are the owner's own explanations for past corrections ([merchant, subcategory id,
+      note]); they describe the owner's conventions, so weigh them heavily for similar items.
 
       Never pick a subcategory listed in an item's `not`: the owner rejected it for that merchant.
       Leave an item out when you can't place it with reasonable confidence; a missing suggestion

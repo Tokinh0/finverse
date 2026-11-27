@@ -15,7 +15,7 @@ module Api::V1
       }
     end
 
-    # Body: { transaction: { subcategory_id, transaction_type, keyword, apply_to_matching } }
+    # Body: { transaction: { subcategory_id, transaction_type, keyword, apply_to_matching, reason } }
     def update
       result = Transactions::Recategorize.call(Transaction.find(params[:id]), **recategorize_params)
 
@@ -36,7 +36,7 @@ module Api::V1
 
     def recategorize_params
       params.require(:transaction)
-            .permit(:subcategory_id, :transaction_type, :keyword, :apply_to_matching)
+            .permit(:subcategory_id, :transaction_type, :keyword, :apply_to_matching, :reason)
             .to_h
             .symbolize_keys
     end
