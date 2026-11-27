@@ -7,7 +7,7 @@ on:
 
 jobs:
   rspec:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # Ruby 3.2.0 (pinned in .ruby-version/Dockerfile) is not built for newer images
     services:
       postgres:
         image: postgres:14
@@ -34,7 +34,7 @@ jobs:
       - run: bundle exec rspec
 
   rubocop:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # Ruby 3.2.0 (pinned in .ruby-version/Dockerfile) is not built for newer images
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update -qq && sudo apt-get install -y -qq libpq-dev
