@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_11_27_150000) do
+ActiveRecord::Schema[7.1].define(version: 2026_11_27_170000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -96,6 +96,24 @@ ActiveRecord::Schema[7.1].define(version: 2026_11_27_150000) do
     t.index ["to_subcategory_id"], name: "index_categorization_events_on_to_subcategory_id"
   end
 
+  create_table "category_suggestions", force: :cascade do |t|
+    t.bigint "parsed_transaction_id", null: false
+    t.bigint "subcategory_id", null: false
+    t.bigint "suggestion_run_id"
+    t.string "origin", null: false
+    t.decimal "confidence", precision: 3, scale: 2, null: false
+    t.string "reason"
+    t.string "status", default: "pending", null: false
+    t.datetime "decided_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["parsed_transaction_id"], name: "index_category_suggestions_on_parsed_transaction_id"
+    t.index ["parsed_transaction_id"], name: "index_category_suggestions_one_pending_per_transaction", unique: true, where: "((status)::text = 'pending'::text)"
+    t.index ["status"], name: "index_category_suggestions_on_status"
+    t.index ["subcategory_id"], name: "index_category_suggestions_on_subcategory_id"
+    t.index ["suggestion_run_id"], name: "index_category_suggestions_on_suggestion_run_id"
+  end
+
   create_table "keywords", force: :cascade do |t|
     t.string "name"
     t.string "parsed_name"
@@ -126,6 +144,25 @@ ActiveRecord::Schema[7.1].define(version: 2026_11_27_150000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["category_id"], name: "index_subcategories_on_category_id"
+  end
+
+  create_table "suggestion_runs", force: :cascade do |t|
+    t.bigint "monthly_statement_id"
+    t.string "status", default: "queued", null: false
+    t.string "error_code"
+    t.string "error_message"
+    t.string "model"
+    t.integer "history_suggestions_count", default: 0, null: false
+    t.integer "ai_groups_sent", default: 0, null: false
+    t.integer "ai_suggestions_count", default: 0, null: false
+    t.integer "ai_requests_count", default: 0, null: false
+    t.integer "input_tokens", default: 0, null: false
+    t.integer "output_tokens", default: 0, null: false
+    t.datetime "started_at"
+    t.datetime "finished_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["monthly_statement_id"], name: "index_suggestion_runs_on_monthly_statement_id"
   end
 
   create_table "summary_lines", force: :cascade do |t|
@@ -166,8 +203,12 @@ ActiveRecord::Schema[7.1].define(version: 2026_11_27_150000) do
   add_foreign_key "categorization_events", "subcategories", column: "from_subcategory_id", on_delete: :nullify
   add_foreign_key "categorization_events", "subcategories", column: "to_subcategory_id", on_delete: :nullify
   add_foreign_key "categorization_events", "transactions", column: "parsed_transaction_id", on_delete: :cascade
+  add_foreign_key "category_suggestions", "subcategories", on_delete: :cascade
+  add_foreign_key "category_suggestions", "suggestion_runs", on_delete: :nullify
+  add_foreign_key "category_suggestions", "transactions", column: "parsed_transaction_id", on_delete: :cascade
   add_foreign_key "keywords", "subcategories"
   add_foreign_key "subcategories", "categories"
+  add_foreign_key "suggestion_runs", "monthly_statements", on_delete: :nullify
   add_foreign_key "summary_lines", "monthly_statements"
   add_foreign_key "summary_lines", "transactions", column: "parsed_transaction_id"
   add_foreign_key "transactions", "keywords", on_delete: :nullify

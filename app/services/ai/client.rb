@@ -12,7 +12,14 @@ module Ai
       end
 
       def retryable?
-        %w[rate_limited unavailable timeout].include?(code)
+        false
+      end
+    end
+
+    # Rate limits, timeouts and outages: worth trying again later.
+    class RetryableError < Error
+      def retryable?
+        true
       end
     end
 
@@ -47,15 +54,15 @@ module Ai
     rescue Anthropic::Errors::AuthenticationError, Anthropic::Errors::PermissionDeniedError
       raise Error.new("invalid_key", "Your Claude API key was rejected. Update it in Settings.")
     rescue Anthropic::Errors::RateLimitError
-      raise Error.new("rate_limited", "Claude's rate limit was reached. Suggestions will be retried shortly.")
+      raise RetryableError.new("rate_limited", "Claude's rate limit was reached. Suggestions will be retried shortly.")
     rescue Anthropic::Errors::PaymentRequiredError
       raise Error.new("billing", "Your Anthropic account has no credit left. Add credit in the Claude Console.")
     rescue Anthropic::Errors::APITimeoutError, Anthropic::Errors::RequestTimeoutError
-      raise Error.new("timeout", "Claude took too long to answer. Try again later.")
+      raise RetryableError.new("timeout", "Claude took too long to answer. Try again later.")
     rescue Anthropic::Errors::APIConnectionError
-      raise Error.new("unavailable", "Couldn't reach the Claude API. Check the connection and try again.")
+      raise RetryableError.new("unavailable", "Couldn't reach the Claude API. Check the connection and try again.")
     rescue Anthropic::Errors::InternalServerError
-      raise Error.new("unavailable", "The Claude API is having problems. Suggestions will be retried shortly.")
+      raise RetryableError.new("unavailable", "The Claude API is having problems. Suggestions will be retried shortly.")
     rescue Anthropic::Errors::BadRequestError, Anthropic::Errors::NotFoundError => e
       raise Error.new("bad_request", "Claude rejected the request (#{e.class.name.demodulize}). Check the model name in Settings.")
     rescue Anthropic::Errors::APIStatusError => e

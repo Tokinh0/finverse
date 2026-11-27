@@ -20,7 +20,7 @@ module Transactions
     def call
       scope = filtered_scope
       Result.new(
-        transactions: scope.includes(subcategory: :category)
+        transactions: scope.includes(subcategory: :category, pending_category_suggestion: { subcategory: :category })
                            .order(transaction_date: :desc, id: :desc)
                            .offset((page - 1) * per_page)
                            .limit(per_page)

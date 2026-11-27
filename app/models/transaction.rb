@@ -7,6 +7,8 @@ class Transaction < ApplicationRecord
   has_one :summary_line, foreign_key: :parsed_transaction_id, dependent: :destroy
   has_many :alert_dismissals, foreign_key: :parsed_transaction_id, dependent: :delete_all
   has_many :categorization_events, foreign_key: :parsed_transaction_id, dependent: :delete_all
+  has_many :category_suggestions, foreign_key: :parsed_transaction_id, dependent: :delete_all
+  has_one :pending_category_suggestion, -> { pending }, class_name: "CategorySuggestion", foreign_key: :parsed_transaction_id
 
   enum transaction_type: { credit: "credit", debit: "debit", unknown: "unknown" }
 

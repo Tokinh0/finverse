@@ -19,6 +19,15 @@ Rails.application.routes.draw do
         get :financial_health
       end
       get :portfolio_dashboard, to: "portfolio_dashboard#index"
+      get "suggestions/summary", to: "suggestions#summary"
+      resources :suggestion_runs, only: %i[index create]
+      resources :category_suggestions, only: :index do
+        member do
+          post :accept
+          post :reject
+        end
+        collection { post :bulk_accept }
+      end
       namespace :settings do
         resource :claude, only: %i[show update destroy], controller: "claude"
       end

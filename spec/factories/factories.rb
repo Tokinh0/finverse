@@ -54,4 +54,16 @@ FactoryBot.define do
     quantity { 1 }
     color_code { '#abcdef' }
   end
+
+  factory :suggestion_run do
+    status { 'queued' }
+  end
+
+  factory :category_suggestion do
+    association :parsed_transaction, factory: :transaction
+    subcategory
+    origin { 'ai' }
+    confidence { 0.8 }
+    status { 'pending' }
+  end
 end

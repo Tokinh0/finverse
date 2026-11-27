@@ -45,7 +45,7 @@ RSpec.describe Ai::Client do
   end
 
   it 'marks rate limits and outages as retryable but not invalid keys' do
-    expect(described_class::Error.new('rate_limited', '')).to be_retryable
+    expect(described_class::RetryableError.new('rate_limited', '')).to be_retryable
     expect(described_class::Error.new('invalid_key', '')).not_to be_retryable
   end
 end
