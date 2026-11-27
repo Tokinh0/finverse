@@ -43,13 +43,16 @@ module Rules
     # subcategories: which one wins depends on rule order, not on the data.
     def overlaps(keywords)
       result = Hash.new { |h, k| h[k] = [] }
-      Transaction.select(:id, :parsed_name).find_each do |transaction|
-        scored = keywords.map { [ _1, Matchers::DefaultMatcher.match_score(transaction.parsed_name.to_s, _1.parsed_name) ] }
+      Transaction.select(:id, :parsed_name, :amount).find_each do |transaction|
+        scored = keywords.select { _1.applies_to_amount?(transaction.amount) }
+                         .map { [ _1, Matchers::DefaultMatcher.match_score(transaction.parsed_name.to_s, _1.parsed_name) ] }
                          .select { _2.positive? }
         next if scored.size < 2
 
-        best = scored.map(&:last).max
-        tied = scored.select { _2 == best }.map(&:first)
+        # Same tie-break as the matcher: score first, then ranged rules over plain ones.
+        rank = ->((kw, score)) { [ score, kw.amount_range? ? 1 : 0 ] }
+        best = scored.map(&rank).max
+        tied = scored.select { rank.call(_1) == best }.map(&:first)
         next if tied.map(&:subcategory_id).uniq.size < 2
 
         tied.each { |kw| result[kw.id] |= (tied.map(&:id) - [ kw.id ]) }

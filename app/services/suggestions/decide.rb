@@ -5,6 +5,8 @@ module Suggestions
   # - accept with another subcategory ("change"): the transaction moves there (source "manual")
   #   and the suggestion counts as rejected, so it isn't proposed for this merchant again.
   # - reject: nothing moves; the rejection is remembered.
+  # - dont_know: nothing moves and nothing is remembered about the subcategory; the transaction
+  #   is marked "no idea" (Transactions::MarkUnknown).
   #
   # Both go through Transactions::Recategorize, which records the CategorizationEvent.
   module Decide
@@ -31,6 +33,14 @@ module Suggestions
       return Result.new(success?: true, suggestion: suggestion, errors: []) if errors.empty?
 
       Result.new(success?: false, suggestion: suggestion.reload, errors: errors)
+    end
+
+    # "No idea": the transaction stays where it is and gets no more suggestions. Not a rejection.
+    def dont_know(suggestion)
+      return stale(suggestion) unless suggestion.pending?
+
+      result = Transactions::MarkUnknown.call(suggestion.parsed_transaction)
+      Result.new(success?: result.success?, suggestion: suggestion.reload, errors: result.errors)
     end
 
     def reject(suggestion)

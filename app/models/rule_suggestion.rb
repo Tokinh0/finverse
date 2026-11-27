@@ -23,6 +23,7 @@ class RuleSuggestion < ApplicationRecord
   before_validation { self.fingerprint = change.fingerprint }
 
   def change
-    Rules::Change.new(action: action, keyword: keyword, name: name, subcategory_id: subcategory_id)
+    Rules::Change.new(action: action, keyword: keyword, name: name, subcategory_id: subcategory_id,
+                      min_amount: min_amount, max_amount: max_amount)
   end
 end

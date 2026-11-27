@@ -94,8 +94,11 @@ module Suggestions
     end
 
     def save_rule(suggestion)
+      # For an update, null amounts mean "keep the current range".
+      keep = ->(value) { value.nil? && suggestion[:action] == "update" ? Rules::Change::KEEP : value }
       change = Rules::Change.new(action: suggestion[:action], keyword: suggestion[:keyword_id] && Keyword.find_by(id: suggestion[:keyword_id]),
-                                 name: suggestion[:keyword], subcategory_id: suggestion[:subcategory_id])
+                                 name: suggestion[:keyword], subcategory_id: suggestion[:subcategory_id],
+                                 min_amount: keep.call(suggestion[:min_amount]), max_amount: keep.call(suggestion[:max_amount]))
       saved = Rules::SuggestionWriter.call(change, origin: "ai", run: run, confidence: suggestion[:confidence], reason: suggestion[:reason])
       run.rule_suggestions_count += 1 if saved&.suggestion_run_id == run.id
     end

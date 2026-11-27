@@ -8,7 +8,7 @@ class Categorization
   end
 
   def call(entry)
-    match = Matchers::DefaultMatcher.find_best_keyword_match(entry[:name], keywords)
+    match = Matchers::DefaultMatcher.find_best_keyword_match(entry[:name], keywords, amount: entry[:amount]&.abs)
 
     {
       name: entry[:name],

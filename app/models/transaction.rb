@@ -18,7 +18,15 @@ class Transaction < ApplicationRecord
     keyword: "keyword", ai_accepted: "ai_accepted", manual: "manual", uncategorized: "uncategorized"
   }, _prefix: :categorized_by
 
+  # "No idea": the owner can't tell what this is. See Transactions::MarkUnknown.
+  scope :marked_unknown, -> { where.not(unknown_marked_at: nil) }
+  scope :not_marked_unknown, -> { where(unknown_marked_at: nil) }
+
   before_save :normalize_amount
+
+  def marked_unknown?
+    unknown_marked_at.present?
+  end
 
   def normalize_amount
     self.amount = amount.to_f.abs.round(2)

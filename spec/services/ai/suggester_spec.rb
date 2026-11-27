@@ -24,7 +24,7 @@ RSpec.describe Ai::Suggester do
     expect(JSON.parse(body['messages'].first['content'])['items'].first).to include('id' => 1, 'name' => 'PADARIA SOL')
     expect(result.suggestions.sole).to have_attributes(group: group, subcategory_id: bakery.id, confidence: 0.9, reason: 'Bakery')
     expect(result.rule_suggestions).to eq([ { action: 'create', keyword_id: nil, keyword: 'PADARIA', subcategory_id: bakery.id,
-                                               confidence: 0.8, reason: 'Recurs' } ])
+                                               min_amount: nil, max_amount: nil, confidence: 0.8, reason: 'Recurs' } ])
     expect(body['output_config']['format']['schema']['required']).to eq(%w[category_suggestions rule_suggestions])
     expect(result).to have_attributes(dropped: 0, input_tokens: 120, output_tokens: 40)
   end

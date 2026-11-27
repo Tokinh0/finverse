@@ -6,11 +6,14 @@ module Rules
 
     module_function
 
-    def accept(suggestion, name: nil, subcategory_id: nil, reapply: "uncategorized")
+    # `amounts:` (optional) replaces the suggested amount range: { min_amount:, max_amount: }, nil = no bound.
+    def accept(suggestion, name: nil, subcategory_id: nil, reapply: "uncategorized", amounts: nil)
       return stale(suggestion) unless suggestion.pending?
 
+      range = amounts || { min_amount: suggestion.min_amount, max_amount: suggestion.max_amount }
       change = Change.new(action: suggestion.action, keyword: suggestion.keyword,
-                          name: name.presence || suggestion.name, subcategory_id: subcategory_id.presence || suggestion.subcategory_id)
+                          name: name.presence || suggestion.name, subcategory_id: subcategory_id.presence || suggestion.subcategory_id,
+                          **range)
       RuleSuggestion.transaction do
         moved = Preview.call(change, limit: 0).matched
         applied = Apply.call(change, reapply: reapply)
@@ -18,7 +21,7 @@ module Rules
         RuleSuggestion.pending.where(fingerprint: suggestion.fingerprint).update_all(status: "superseded", decided_at: Time.current)
         Result.new(success?: true, suggestion: suggestion, keyword: applied.keyword, updated_count: applied.updated_count, errors: [])
       end
-    rescue ActiveRecord::RecordInvalid, ArgumentError => e
+    rescue ActiveRecord::RecordInvalid, ArgumentError, TypeError => e
       errors = e.respond_to?(:record) ? e.record.errors.full_messages : [ e.message ]
       Result.new(success?: false, suggestion: suggestion.reload, errors: errors, updated_count: 0)
     end

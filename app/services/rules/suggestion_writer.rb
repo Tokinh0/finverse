@@ -12,9 +12,9 @@ module Rules
     # @return [RuleSuggestion, nil]
     def call(change, origin:, confidence:, reason:, run: nil)
       return if change.action != "delete" && change.parsed_name.delete("_").length < MIN_KEYWORD_LENGTH
-      return if change.action == "create" && Keyword.exists?(parsed_name: change.parsed_name, subcategory_id: change.subcategory_id)
-      return if change.action == "update" && change.parsed_name == change.keyword.parsed_name &&
-                change.subcategory_id == change.keyword.subcategory_id
+      return if change.action == "create" &&
+                Keyword.exists?(parsed_name: change.parsed_name, subcategory_id: change.subcategory_id, **change.amounts)
+      return if change.no_op?
 
       existing = RuleSuggestion.pending.find_by(fingerprint: change.fingerprint)
       return existing if existing
@@ -26,7 +26,7 @@ module Rules
 
       RuleSuggestion.create!(
         action: change.action, keyword: change.keyword, name: change.name, subcategory_id: change.subcategory_id,
-        origin: origin, confidence: confidence, reason: reason, suggestion_run: run
+        min_amount: change.min_amount, max_amount: change.max_amount, origin: origin, confidence: confidence, reason: reason, suggestion_run: run
       )
     end
 

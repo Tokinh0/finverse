@@ -25,6 +25,11 @@ module Api::V1
       render_decision Suggestions::Decide.reject(suggestion)
     end
 
+    # "No idea": the transaction stays in Outros and gets no more suggestions.
+    def dont_know
+      render_decision Suggestions::Decide.dont_know(suggestion)
+    end
+
     # Body: { min_confidence } and/or { merchant_key }
     def bulk_accept
       count = Suggestions::Decide.bulk_accept(min_confidence: params[:min_confidence], merchant_key: params[:merchant_key])

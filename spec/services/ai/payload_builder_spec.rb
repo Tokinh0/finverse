@@ -73,4 +73,13 @@ RSpec.describe Ai::PayloadBuilder do
 
     expect(notes).to eq([ [ 'PADARIA_SOL', bakery.id, 'Paid with CPF #, it is my bakery' ], [ 'LOJA_ANTIGA', market.id, 'old note' ] ])
   end
+
+  it 'adds the amount range to ranged rules only' do
+    plain = create(:keyword, name: 'PADARIA', subcategory: bakery)
+    ranged = create(:keyword, name: 'AMAZON', subcategory: bakery, max_amount: 99.99)
+
+    expect(described_class.new([ group('MERCADO') ]).call[:payload][:rules]).to eq([
+      [ ranged.id, 'AMAZON', bakery.id, nil, 99.99 ], [ plain.id, 'PADARIA', bakery.id ]
+    ])
+  end
 end

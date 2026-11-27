@@ -40,7 +40,7 @@ module Api::V1
       end
 
       def keyword_params
-        params.require(:keyword).permit(:name, :subcategory_id, :description, :color_code, :keyword_type)
+        params.require(:keyword).permit(:name, :subcategory_id, :description, :color_code, :keyword_type, :min_amount, :max_amount)
       end
   end
 end

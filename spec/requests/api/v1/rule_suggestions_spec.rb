@@ -11,7 +11,8 @@ RSpec.describe 'Api::V1::RuleSuggestions' do
 
     expect(json.sole).to include(
       'id' => suggestion.id, 'action' => 'create', 'confidence' => 0.93, 'reason' => 'Recurs', 'keyword' => nil,
-      'proposed' => { 'name' => 'UBER TRIP', 'subcategory' => a_hash_including('id' => transport.id, 'category' => 'Mobilidade') }
+      'proposed' => { 'name' => 'UBER TRIP', 'subcategory' => a_hash_including('id' => transport.id, 'category' => 'Mobilidade'),
+                      'min_amount' => nil, 'max_amount' => nil }
     )
     expect(json.sole['preview']).to include('total' => 1, 'matched' => 1, 'counts' => { 'uncategorized' => 1, 'keyword' => 0, 'kept' => 0 })
     expect(json.sole['preview']['transactions'].sole).to include(

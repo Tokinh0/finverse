@@ -70,4 +70,35 @@ RSpec.describe 'Api::V1::Transactions' do
       expect(transaction.categorization_events.sole.note).to eq('Monthly rent')
     end
   end
+
+  describe '"no idea"' do
+    let(:transaction) { create(:transaction, name: 'PIX 1', subcategory: fallback, categorization_source: 'uncategorized') }
+
+    it 'marks and unmarks a transaction, and filters by the mark' do
+      post "/api/v1/transactions/#{transaction.id}/unknown"
+      expect(json).to include('id' => transaction.id, 'unknown_marked' => true)
+
+      create(:transaction, name: 'OTHER', subcategory: fallback)
+      get '/api/v1/transactions', params: { unknown: 'true' }
+      expect(json['transactions'].map { _1['id'] }).to eq([ transaction.id ])
+
+      delete "/api/v1/transactions/#{transaction.id}/unknown"
+      expect(json['unknown_marked']).to be(false)
+    end
+
+    it 'refuses categorized transactions' do
+      post "/api/v1/transactions/#{create(:transaction, subcategory: food, categorization_source: 'manual').id}/unknown"
+
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    it 'answers a suggestion with "no idea"' do
+      suggestion = create(:category_suggestion, parsed_transaction: transaction, subcategory: food)
+
+      post "/api/v1/category_suggestions/#{suggestion.id}/dont_know"
+
+      expect(json['status']).to eq('dismissed')
+      expect(transaction.reload).to be_marked_unknown
+    end
+  end
 end

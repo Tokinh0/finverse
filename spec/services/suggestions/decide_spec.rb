@@ -71,4 +71,12 @@ RSpec.describe Suggestions::Decide do
       expect { described_class.bulk_accept }.to raise_error(ArgumentError)
     end
   end
+
+  it "'no idea' dismisses the suggestion and marks the transaction, keeping it in Outros" do
+    expect(described_class.dont_know(suggestion)).to be_success
+
+    expect(suggestion.reload).to be_dismissed
+    expect(transaction.reload).to have_attributes(subcategory: fallback, categorization_source: 'uncategorized')
+    expect(transaction).to be_marked_unknown
+  end
 end

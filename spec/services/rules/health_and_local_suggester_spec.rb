@@ -63,4 +63,12 @@ RSpec.describe 'Rules::Health and Rules::LocalSuggester' do
       expect(described_class.nudge_for(Transaction.last)).to have_attributes(parsed_name: 'TAXI_AMIGO')
     end
   end
+
+  it 'does not flag rules for the same keyword with separate ranges as overlapping' do
+    small = create(:keyword, name: 'AMAZON', subcategory: food, max_amount: 99.99)
+    create(:keyword, name: 'AMAZON', subcategory: transport, min_amount: 100)
+    create(:transaction, name: 'AMAZON', amount: 50, subcategory: food, categorization_source: 'keyword', keyword: small)
+
+    expect(Rules::Health.call[small.id].flags).not_to include('overlapping')
+  end
 end

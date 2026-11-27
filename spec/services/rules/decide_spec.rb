@@ -39,4 +39,11 @@ RSpec.describe Rules::Decide do
     expect(described_class.accept(other, reapply: 'bogus')).not_to be_success
     expect(other.reload).to be_pending
   end
+
+  it 'accepts with an edited amount range' do
+    result = described_class.accept(suggestion, amounts: { min_amount: '', max_amount: '30' })
+
+    expect(result.keyword).to have_attributes(min_amount: nil, max_amount: 30)
+    expect(open_one.reload.subcategory).to eq(transport) # its amount (10.5) is in range
+  end
 end

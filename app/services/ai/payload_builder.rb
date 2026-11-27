@@ -30,7 +30,7 @@ module Ai
       items = groups.each_with_index.to_h { |group, index| [ index + 1, group ] }
       payload = {
         subcategories: subcategories,
-        rules: Keyword.order(:parsed_name).pluck(:id, :parsed_name, :subcategory_id),
+        rules: rules,
         rule_issues: rule_issues,
         examples: examples,
         corrections: corrections,
@@ -52,6 +52,13 @@ module Ai
     def subcategories
       Subcategory.includes(:category).where(id: allowed_subcategory_ids).order(:id).map do |subcategory|
         { id: subcategory.id, name: "#{subcategory.category.name} / #{subcategory.name}", type: subcategory.subcategory_type }
+      end
+    end
+
+    # [id, keyword, subcategory id], plus [min amount, max amount] for rules with an amount range.
+    def rules
+      Keyword.order(:parsed_name).pluck(:id, :parsed_name, :subcategory_id, :min_amount, :max_amount).map do |id, name, sub, min, max|
+        min || max ? [ id, name, sub, min&.to_f, max&.to_f ] : [ id, name, sub ]
       end
     end
 

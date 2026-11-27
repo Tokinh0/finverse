@@ -2,7 +2,12 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :assets
-      resources :transactions, only: %i[index update]
+      resources :transactions, only: %i[index update] do
+        member do
+          post :unknown, action: :mark_unknown
+          delete :unknown, action: :unmark_unknown
+        end
+      end
       resources :alerts, only: :index do
         collection do
           post :dismiss
@@ -33,6 +38,7 @@ Rails.application.routes.draw do
         member do
           post :accept
           post :reject
+          post :dont_know
         end
         collection { post :bulk_accept }
       end

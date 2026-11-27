@@ -46,9 +46,9 @@ RSpec.describe Ai::ResponseValidator do
       ])
 
       expect(result).to eq([
-        { action: 'create', keyword_id: nil, keyword: 'UBER TRIP', subcategory_id: 10, confidence: 0.9, reason: 'x' },
-        { action: 'update', keyword_id: 5, keyword: nil, subcategory_id: 11, confidence: 0.7, reason: 'y' },
-        { action: 'delete', keyword_id: 5, keyword: nil, subcategory_id: nil, confidence: 0.6, reason: 'z' }
+        { action: 'create', keyword_id: nil, keyword: 'UBER TRIP', subcategory_id: 10, min_amount: nil, max_amount: nil, confidence: 0.9, reason: 'x' },
+        { action: 'update', keyword_id: 5, keyword: nil, subcategory_id: 11, min_amount: nil, max_amount: nil, confidence: 0.7, reason: 'y' },
+        { action: 'delete', keyword_id: 5, keyword: nil, subcategory_id: nil, min_amount: nil, max_amount: nil, confidence: 0.6, reason: 'z' }
       ])
     end
 
@@ -60,8 +60,16 @@ RSpec.describe Ai::ResponseValidator do
         { 'action' => 'update', 'keyword_id' => 6, 'keyword' => 'X', 'subcategory_id' => 10, 'confidence' => 0.9 },
         { 'action' => 'update', 'keyword_id' => 5, 'keyword' => nil, 'subcategory_id' => nil, 'confidence' => 0.9 },
         { 'action' => 'delete', 'keyword_id' => 7, 'confidence' => 0.9 },
-        { 'action' => 'create', 'keyword' => 'UBER', 'subcategory_id' => 10, 'confidence' => 2 }
+        { 'action' => 'create', 'keyword' => 'UBER', 'subcategory_id' => 10, 'confidence' => 2 },
+        { 'action' => 'create', 'keyword' => 'UBER', 'subcategory_id' => 10, 'confidence' => 0.9, 'min_amount' => -1 },
+        { 'action' => 'create', 'keyword' => 'UBER', 'subcategory_id' => 10, 'confidence' => 0.9, 'min_amount' => 100, 'max_amount' => 50 }
       ])).to eq([])
+    end
+
+    it 'keeps amount ranges' do
+      expect(rules([
+        { 'action' => 'create', 'keyword' => 'AMAZON', 'subcategory_id' => 10, 'min_amount' => nil, 'max_amount' => 99.99, 'confidence' => 0.8 }
+      ]).sole).to include(min_amount: nil, max_amount: 99.99)
     end
   end
 end

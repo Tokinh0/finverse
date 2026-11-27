@@ -3,7 +3,8 @@ module Rules
   # they would be after the change. Nothing is saved.
   #
   # A transaction is affected when its subcategory would change. Transactions the owner
-  # categorized (manual or accepted) are never moved by rules; they are reported as `kept`.
+  # categorized (manual or accepted) or marked "no idea" are never moved by rules; they are
+  # reported as `kept`.
   class Preview
     OWNER_SOURCES = %w[manual ai_accepted].freeze
     DEFAULT_LIMIT = 50
@@ -51,14 +52,14 @@ module Rules
 
       Enumerator.new do |yielder|
         change.candidates.includes(:subcategory).find_each do |transaction|
-          match = Matchers::DefaultMatcher.find_best_keyword_match(transaction.name, keywords)
+          match = Matchers::DefaultMatcher.find_best_keyword_match(transaction.name, keywords, amount: transaction.amount)
           @claimed = @claimed.to_i + 1 if match && changed_rule?(match)
           to_subcategory_id = match&.subcategory_id || fallback_id
           next if to_subcategory_id == transaction.subcategory_id
 
           yielder << Row.new(transaction: transaction, from_subcategory_id: transaction.subcategory_id,
                              to_subcategory_id: to_subcategory_id, to_keyword_id: match&.id,
-                             kept: OWNER_SOURCES.include?(transaction.categorization_source))
+                             kept: OWNER_SOURCES.include?(transaction.categorization_source) || transaction.marked_unknown?)
         end
       end
     end

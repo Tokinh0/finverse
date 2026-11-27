@@ -15,8 +15,8 @@ class RuleSuggestionPresenter
       status: @suggestion.status,
       confidence: @suggestion.confidence.to_f,
       reason: @suggestion.reason,
-      keyword: keyword && { id: keyword.id, name: keyword.name, subcategory: subcategory(keyword.subcategory_id) },
-      proposed: @suggestion.action == "delete" ? nil : { name: @suggestion.name, subcategory: subcategory(@suggestion.subcategory_id) },
+      keyword: keyword && { id: keyword.id, name: keyword.name, subcategory: subcategory(keyword.subcategory_id), **amounts(keyword) },
+      proposed: @suggestion.action == "delete" ? nil : { name: @suggestion.name, subcategory: subcategory(@suggestion.subcategory_id), **amounts(@suggestion) },
       preview: @suggestion.pending? ? preview : nil,
       created_at: @suggestion.created_at
     }
@@ -40,6 +40,10 @@ class RuleSuggestionPresenter
         }
       end
     }
+  end
+
+  def amounts(record)
+    { min_amount: record.min_amount&.to_f, max_amount: record.max_amount&.to_f }
   end
 
   def subcategory(id)

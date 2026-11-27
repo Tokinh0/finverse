@@ -7,10 +7,12 @@ module Api::V1
       render json: suggestions.map { present(_1) }
     end
 
-    # Body: { name, subcategory_id } to edit before accepting; reapply: none | uncategorized | all
+    # Body: { name, subcategory_id, min_amount, max_amount } to edit before accepting (send both
+    # amount keys to change the range; null = no bound); reapply: none | uncategorized | all
     def accept
+      amounts = params.key?(:min_amount) || params.key?(:max_amount) ? { min_amount: params[:min_amount], max_amount: params[:max_amount] } : nil
       result = Rules::Decide.accept(suggestion, name: params[:name], subcategory_id: params[:subcategory_id],
-                                                reapply: params[:reapply].presence || "uncategorized")
+                                                reapply: params[:reapply].presence || "uncategorized", amounts: amounts)
       render_decision(result)
     end
 

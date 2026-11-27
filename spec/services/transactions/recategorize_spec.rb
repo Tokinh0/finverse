@@ -109,4 +109,10 @@ RSpec.describe Transactions::Recategorize do
       expect(transaction.categorization_events.sole.note).to be_nil
     end
   end
+
+  it 'creates a keyword limited to an amount range' do
+    result = described_class.call(transaction, subcategory_id: food.id, keyword: 'LANCHONETE', min_amount: '5', max_amount: '')
+
+    expect(result.keyword).to have_attributes(parsed_name: 'LANCHONETE', min_amount: 5, max_amount: nil)
+  end
 end

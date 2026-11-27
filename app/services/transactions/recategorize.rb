@@ -21,11 +21,13 @@ module Transactions
     # `reason:` is the owner's explanation for a move, kept on the CategorizationEvent and sent to
     # Claude as context for similar transactions. Ignored when the subcategory doesn't change.
     def initialize(transaction, subcategory_id: nil, transaction_type: nil, keyword: nil, apply_to_matching: false,
-                   source: "manual", reason: nil)
+                   source: "manual", reason: nil, min_amount: nil, max_amount: nil)
       raise ArgumentError, "Unknown source: #{source}" unless SOURCES.include?(source)
 
       @source = source
       @reason = reason.to_s.squish.truncate(NOTE_LIMIT).presence
+      @min_amount = min_amount.presence
+      @max_amount = max_amount.presence
       @transaction = transaction
       @subcategory_id = subcategory_id.presence
       @transaction_type = transaction_type.presence
@@ -53,7 +55,7 @@ module Transactions
 
     private
 
-    attr_reader :transaction, :subcategory_id, :transaction_type, :keyword_name, :apply_to_matching, :source, :reason
+    attr_reader :transaction, :subcategory_id, :transaction_type, :keyword_name, :apply_to_matching, :source, :reason, :min_amount, :max_amount
 
     # The owner chose this subcategory by hand. The event keeps what it replaced, so repeated
     # corrections of a merchant (or of one keyword's matches) can become rule suggestions.
@@ -67,14 +69,15 @@ module Transactions
         merchant_key: Transactions::Merchant.key(transaction),
         note: reason
       )
-      transaction.assign_attributes(categorization_source: source, keyword_id: nil)
+      transaction.assign_attributes(categorization_source: source, keyword_id: nil, unknown_marked_at: nil)
     end
 
     # Reuses the keyword when the subcategory already has it.
     def create_keyword!
       Keyword.find_or_create_by!(
         parsed_name: StringUtils.default_string_parse(keyword_name),
-        subcategory_id: transaction.subcategory_id
+        subcategory_id: transaction.subcategory_id,
+        min_amount: min_amount, max_amount: max_amount
       ) { |keyword| keyword.name = keyword_name }
     end
 
@@ -84,7 +87,8 @@ module Transactions
                               .where.not(subcategory_id: keyword.subcategory_id)
                               .where("parsed_name LIKE ?", "%#{ActiveRecord::Base.sanitize_sql_like(keyword.parsed_name)}%")
 
-      ids = candidates.select { |t| Matchers::DefaultMatcher.find_best_keyword_match(t.name, keywords)&.id == keyword.id }.map(&:id)
+      ids = candidates.select { |t| Matchers::DefaultMatcher.find_best_keyword_match(t.name, keywords, amount: t.amount)&.id == keyword.id }
+                      .map(&:id)
       supersede_suggestions(ids)
       Transaction.where(id: ids).update_all(
         subcategory_id: keyword.subcategory_id, keyword_id: keyword.id, categorization_source: "keyword", updated_at: Time.current

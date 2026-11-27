@@ -6,7 +6,7 @@ module Rules
   #   deleted rule must not keep claiming them).
   # - "uncategorized": also uncategorized transactions the new rules now match.
   # - "all": also transactions another keyword categorized, when the new rules match better.
-  # Owner decisions (manual, ai_accepted) are never moved.
+  # Owner decisions (manual, ai_accepted) and transactions marked "no idea" are never moved.
   class Apply
     REAPPLY = %w[none uncategorized all].freeze
 
@@ -38,9 +38,11 @@ module Rules
     def perform!
       case change.action
       when "create"
-        Keyword.find_or_create_by!(parsed_name: change.parsed_name, subcategory_id: change.subcategory_id) { _1.name = change.name }
+        Keyword.find_or_create_by!(parsed_name: change.parsed_name, subcategory_id: change.subcategory_id, **change.amounts) do |keyword|
+          keyword.name = change.name
+        end
       when "update"
-        change.keyword.tap { _1.update!(name: change.name, subcategory_id: change.subcategory_id) }
+        change.keyword.tap { _1.update!(name: change.name, subcategory_id: change.subcategory_id, **change.amounts) }
       when "delete"
         change.keyword.destroy!
         nil
@@ -49,7 +51,7 @@ module Rules
 
     def eligible(scope)
       sources = { "none" => [], "uncategorized" => %w[uncategorized], "all" => %w[uncategorized keyword] }.fetch(reapply)
-      by_source = scope.where(categorization_source: sources)
+      by_source = scope.where(categorization_source: sources).not_marked_unknown
       change.keyword ? by_source.or(scope.where(keyword_id: change.keyword.id)) : by_source
     end
 
@@ -60,7 +62,7 @@ module Rules
       moved = []
 
       scope.find_each do |transaction|
-        match = Matchers::DefaultMatcher.find_best_keyword_match(transaction.name, keywords)
+        match = Matchers::DefaultMatcher.find_best_keyword_match(transaction.name, keywords, amount: transaction.amount)
         attrs = { subcategory_id: match&.subcategory_id || fallback_id, keyword_id: match&.id,
                   categorization_source: match ? "keyword" : "uncategorized" }
         next if attrs.all? { |key, value| transaction[key] == value }

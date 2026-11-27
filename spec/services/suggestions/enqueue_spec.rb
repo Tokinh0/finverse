@@ -24,4 +24,11 @@ RSpec.describe Suggestions::Enqueue do
 
     expect(described_class.call).to be_nil
   end
+
+  it 'ignores transactions marked "no idea"' do
+    create(:transaction, monthly_statement: statement, subcategory: fallback, categorization_source: 'uncategorized',
+                         unknown_marked_at: Time.current)
+
+    expect(described_class.call(statement)).to be_nil
+  end
 end

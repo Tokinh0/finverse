@@ -89,4 +89,30 @@ RSpec.describe 'Rules::Preview and Rules::Apply' do
     expect { Rules::Apply.call(Rules::Change.new(action: 'create', name: 'X', subcategory_id: food.id), reapply: 'everything') }
       .to raise_error(ArgumentError)
   end
+
+  describe 'amount ranges' do
+    it 'previews and applies a rule only to transactions inside its range' do
+      small = txn('AMAZON PRIME', subcategory: fallback)
+      large = txn('AMAZON COMPRA', subcategory: fallback).tap { _1.update!(amount: 350) }
+      small.update!(amount: 19.9)
+      change = Rules::Change.new(action: 'create', name: 'AMAZON', subcategory_id: food.id, max_amount: '99.99')
+
+      expect(change.fingerprint).to eq("create|AMAZON|#{food.id}||99.99")
+      expect(Rules::Preview.call(change).rows.map(&:transaction)).to eq([ small ])
+      result = Rules::Apply.call(change, reapply: 'uncategorized')
+
+      expect(result.keyword).to have_attributes(max_amount: 99.99, min_amount: nil)
+      expect(small.reload.subcategory).to eq(food)
+      expect(large.reload.subcategory).to eq(fallback)
+    end
+
+    it 'updates a range and keeps the current bounds unless given' do
+      keyword = create(:keyword, name: 'AMAZON', subcategory: food, max_amount: 99.99)
+
+      expect(Rules::Change.new(action: 'update', keyword: keyword, subcategory_id: transport.id).max_amount).to eq(99.99)
+      expect(Rules::Change.new(action: 'update', keyword: keyword, max_amount: nil).amount_range?).to be(false)
+      expect(Rules::Change.new(action: 'update', keyword: keyword)).to be_no_op
+      expect(Rules::Change.new(action: 'update', keyword: keyword, max_amount: 50)).not_to be_no_op
+    end
+  end
 end

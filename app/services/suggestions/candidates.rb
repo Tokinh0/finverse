@@ -1,5 +1,6 @@
 module Suggestions
-  # Uncategorized transactions that have no pending suggestion yet, grouped by merchant
+  # Uncategorized transactions that have no pending suggestion yet and that the owner didn't
+  # mark "no idea", grouped by merchant
   # (`Transactions::Merchant.key`). Every suggestion is made per group and then applied to each
   # transaction in it, so a merchant seen five times costs one decision, not five.
   module Candidates
@@ -27,6 +28,7 @@ module Suggestions
     # @return [Array<Group>] biggest groups first
     def call(monthly_statement = nil)
       scope = Transaction.categorized_by_uncategorized
+                         .not_marked_unknown
                          .where.missing(:pending_category_suggestion)
                          .includes(:monthly_statement)
                          .order(:transaction_date, :id)

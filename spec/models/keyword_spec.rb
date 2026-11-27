@@ -27,4 +27,27 @@ RSpec.describe Keyword do
 
     expect(keyword.category).to eq(keyword.subcategory.category)
   end
+
+  describe 'amount range' do
+    it 'applies only inside its range, bounds included, and never without an amount' do
+      keyword = build(:keyword, min_amount: 100, max_amount: 200)
+
+      expect([ 99.99, 100, 150, 200, 200.01 ].map { keyword.applies_to_amount?(_1) }).to eq([ false, true, true, true, false ])
+      expect(keyword.applies_to_amount?(-150)).to be(true) # absolute value
+      expect(keyword.applies_to_amount?(nil)).to be(false)
+      expect(build(:keyword).applies_to_amount?(nil)).to be(true)
+    end
+
+    it 'validates the bounds' do
+      expect(build(:keyword, min_amount: 200, max_amount: 100)).not_to be_valid
+      expect(build(:keyword, min_amount: -1)).not_to be_valid
+    end
+
+    it 'allows the same keyword in one subcategory with different ranges' do
+      first = create(:keyword, name: 'AMAZON', max_amount: 99.99)
+
+      expect(build(:keyword, name: 'AMAZON', subcategory: first.subcategory, min_amount: 100)).to be_valid
+      expect(build(:keyword, name: 'AMAZON', subcategory: first.subcategory, max_amount: 99.99)).not_to be_valid
+    end
+  end
 end

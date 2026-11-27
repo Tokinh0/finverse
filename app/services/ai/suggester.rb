@@ -12,7 +12,8 @@ module Ai
 
       For each entry in `items`, pick the subcategory id from `subcategories` that the owner would
       most likely choose. Follow the owner's conventions: `rules` are their keyword rules
-      ([keyword, subcategory id]; keywords are upper case with spaces as "_") and `examples` are
+      ([rule id, keyword, subcategory id], plus [min amount, max amount] when the rule only applies
+      to amounts in that range; keywords are upper case with spaces as "_") and `examples` are
       past transactions they categorized ([name, subcategory id]). `statement` says whether the
       item came from a credit card bill or a checking account; `type` is debit or credit.
       `notes` are the owner's own explanations for past corrections ([merchant, subcategory id,
@@ -35,6 +36,10 @@ module Ai
         subcategory_id null).
       `rule_issues` rows are [rule id, matches, overrides, subcategory the owner moved them to
       most, flags]. Never repeat a change in `rejected_rules`. An empty list is fine.
+      A rule can have an amount range (min_amount and/or max_amount, in BRL, inclusive; null =
+      no bound). Use one only when the same merchant clearly means different things by value,
+      e.g. small recurring AMAZON charges are a subscription and large ones are purchases: then
+      propose one rule per range. For `update`, null amounts keep the rule's current range.
 
       `confidence` is your probability (0 to 1) that the owner agrees. `reason` is at most 12 words.
     PROMPT
@@ -65,10 +70,12 @@ module Ai
               keyword_id: { type: %w[integer null] },
               keyword: { type: %w[string null] },
               subcategory_id: { type: %w[integer null] },
+              min_amount: { type: %w[number null] },
+              max_amount: { type: %w[number null] },
               confidence: { type: "number" },
               reason: { type: "string" }
             },
-            required: %w[action keyword_id keyword subcategory_id confidence reason],
+            required: %w[action keyword_id keyword subcategory_id min_amount max_amount confidence reason],
             additionalProperties: false
           }
         }

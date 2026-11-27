@@ -48,6 +48,11 @@ module Ai
       confidence = entry["confidence"]
       return unless confidence.is_a?(Numeric) && confidence.between?(0, 1)
 
+      min_amount = entry["min_amount"]
+      max_amount = entry["max_amount"]
+      return unless [ min_amount, max_amount ].all? { _1.nil? || (_1.is_a?(Numeric) && _1 >= 0) }
+      return if min_amount && max_amount && min_amount > max_amount
+
       valid =
         case action
         when "create" then keyword.present? && subcategory_ids.include?(subcategory_id)
@@ -58,7 +63,9 @@ module Ai
       return unless valid
 
       { action: action, keyword_id: action == "create" ? nil : keyword_id, keyword: keyword.presence,
-        subcategory_id: action == "delete" ? nil : subcategory_id, confidence: confidence.to_f.round(2),
+        subcategory_id: action == "delete" ? nil : subcategory_id,
+        min_amount: action == "delete" ? nil : min_amount, max_amount: action == "delete" ? nil : max_amount,
+        confidence: confidence.to_f.round(2),
         reason: entry["reason"].to_s.strip.truncate(MAX_REASON_LENGTH).presence }
     end
 
