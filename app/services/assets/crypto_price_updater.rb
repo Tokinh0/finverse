@@ -19,7 +19,7 @@ module Assets
       return false if asset.quantity.nil? || asset.quantity <= 0
 
       # Fetch price in BRL
-      price_brl = CriptomoedasPriceService.fetch_price(asset.ticker, currency: 'brl')
+      price_brl = CriptomoedasPriceService.fetch_price(asset.ticker, currency: "brl")
 
       if price_brl && price_brl > 0
         # Update last_uploaded_unit_value and calculate current_value

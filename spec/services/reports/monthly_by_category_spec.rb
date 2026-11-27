@@ -14,7 +14,7 @@ RSpec.describe Reports::MonthlyByCategory do
     expect(report[:debit].keys).to eq(%w[2025-02 2025-01])
     expect(report[:debit]['2025-01']['CONFORTO']).to match(
       color_code: '#ff0000',
-      subcategories: { 'FOOD' => { total: 10.26, transactions: [hash_including(name: 'IFOOD', transaction_type: 'debit')] } }
+      subcategories: { 'FOOD' => { total: 10.26, transactions: [ hash_including(name: 'IFOOD', transaction_type: 'debit') ] } }
     )
     expect(report[:credit]['2025-01']['GANHOS'][:subcategories]['SALARIO'][:total]).to eq(1000.0)
   end

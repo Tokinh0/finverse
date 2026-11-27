@@ -68,14 +68,14 @@ class CriptomoedasPriceService
       return nil unless price_usd
 
       price = BigDecimal(price_usd.to_s)
-      
+
       # Convert to BRL if needed
       if currency == 'brl'
         usd_to_brl_rate = fetch_usd_to_brl_rate
         return nil unless usd_to_brl_rate
         price = price * usd_to_brl_rate
       end
-      
+
       price
     rescue => e
       Rails.logger.error("CoinCap API error for #{ticker}: #{e.message}")
@@ -89,7 +89,7 @@ class CriptomoedasPriceService
       # Try using exchange_rates endpoint first
       uri = URI("https://api.coingecko.com/api/v3/exchange_rates")
       response = make_request(uri)
-      
+
       if response && response.dig('rates', 'brl', 'value')
         rate = response.dig('rates', 'brl', 'value')
         return BigDecimal(rate.to_s)
@@ -222,4 +222,3 @@ class CriptomoedasPriceService
     end
   end
 end
-

@@ -1,7 +1,7 @@
 class Subcategory < ApplicationRecord
   include Normalizer
 
-  FALLBACK_NAME = 'OUTROS'.freeze
+  FALLBACK_NAME = "OUTROS".freeze
 
   belongs_to :category
   has_many :transactions
@@ -11,7 +11,7 @@ class Subcategory < ApplicationRecord
   validates :parsed_name, uniqueness: { scope: :category_id }
 
   enum subcategory_type: {
-    gain: 'gain', expense: 'expense', investment: 'investment', transfer: 'transfer', other: 'other'
+    gain: "gain", expense: "expense", investment: "investment", transfer: "transfer", other: "other"
   }
 
   # Transactions must always have a subcategory, so deleting one moves its transactions

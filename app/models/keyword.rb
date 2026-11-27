@@ -6,7 +6,7 @@ class Keyword < ApplicationRecord
   validates :name, presence: true
   validates :parsed_name, uniqueness: { scope: :subcategory_id }
 
-  enum keyword_type: { debit: 'debit', credit: 'credit', unknown: 'unknown', ignored: 'ignored' }
+  enum keyword_type: { debit: "debit", credit: "credit", unknown: "unknown", ignored: "ignored" }
 
   after_initialize :set_keyword_type, if: -> { new_record? && keyword_type.nil? }
 

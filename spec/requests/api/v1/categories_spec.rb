@@ -6,7 +6,7 @@ RSpec.describe 'Api::V1::Categories' do
 
     get '/api/v1/categories'
 
-    expect(json).to contain_exactly(a_hash_including('id' => subcategory.category_id, 'subcategories' => [a_hash_including('id' => subcategory.id)]))
+    expect(json).to contain_exactly(a_hash_including('id' => subcategory.category_id, 'subcategories' => [ a_hash_including('id' => subcategory.id) ]))
   end
 
   it 'creates a category' do

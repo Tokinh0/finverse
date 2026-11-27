@@ -42,5 +42,3 @@ class KeywordPresenter
     }
   end
 end
-
-

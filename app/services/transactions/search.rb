@@ -50,14 +50,14 @@ module Transactions
     def search(scope)
       term = "%#{ActiveRecord::Base.sanitize_sql_like(params[:q].to_s.strip)}%"
       parsed = "%#{ActiveRecord::Base.sanitize_sql_like(StringUtils.default_string_parse(params[:q]))}%"
-      scope.where('transactions.name ILIKE :term OR transactions.parsed_name ILIKE :parsed', term: term, parsed: parsed)
+      scope.where("transactions.name ILIKE :term OR transactions.parsed_name ILIKE :parsed", term: term, parsed: parsed)
     end
 
     def month_range
       return @month_range if defined?(@month_range)
 
       @month_range = begin
-        month = Date.strptime(params[:month].to_s, '%Y-%m')
+        month = Date.strptime(params[:month].to_s, "%Y-%m")
         month.beginning_of_month.beginning_of_day..month.end_of_month.end_of_day
       rescue Date::Error
         nil
@@ -65,12 +65,12 @@ module Transactions
     end
 
     def page
-      [params[:page].to_i, 1].max
+      [ params[:page].to_i, 1 ].max
     end
 
     def per_page
       value = params[:per_page].to_i
-      value.positive? ? [value, MAX_PER_PAGE].min : DEFAULT_PER_PAGE
+      value.positive? ? [ value, MAX_PER_PAGE ].min : DEFAULT_PER_PAGE
     end
 
     # Every month that has transactions, newest first, so the client can offer a month picker.

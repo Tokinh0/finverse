@@ -26,13 +26,13 @@ module Reports
           total = subt.sum { |t| t.amount.abs }.round(2).to_f
 
           case sub.subcategory_type
-          when 'transfer'
+          when "transfer"
             total_transfered += total.abs
-          when 'investment'
+          when "investment"
             total_invested += total.abs
-          when 'expense'
+          when "expense"
             total_expended += total.abs
-          when 'gain'
+          when "gain"
             total_received += total.abs
           end
 

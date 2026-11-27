@@ -6,11 +6,11 @@ RSpec.describe Parsers::SicrediAccountStatementPdf do
     fake_pdf_reader(
       text: first_page_text,
       runs: [
-        [40, 700, '12/08/2026'], [120, 700, 'PAGAMENTO PIX - 123 JOHN'], [500, 700, '- R$ 19,00'],
-        [120, 690, 'Saldo do dia 12/08/2026'],
-        [40, 650, '13/08/2026'], [120, 650, 'RECEBIMENTO PIX'], [500, 650, '+ R$ 1.000,50'],
-        [40, 600, '14/08/2026'], [120, 600, 'PAGTO FATURA CARTAO'], [500, 600, '- R$ 300,00'],
-        [40, 550, '15/08/2026'], [120, 550, 'SEM VALOR']
+        [ 40, 700, '12/08/2026' ], [ 120, 700, 'PAGAMENTO PIX - 123 JOHN' ], [ 500, 700, '- R$ 19,00' ],
+        [ 120, 690, 'Saldo do dia 12/08/2026' ],
+        [ 40, 650, '13/08/2026' ], [ 120, 650, 'RECEBIMENTO PIX' ], [ 500, 650, '+ R$ 1.000,50' ],
+        [ 40, 600, '14/08/2026' ], [ 120, 600, 'PAGTO FATURA CARTAO' ], [ 500, 600, '- R$ 300,00' ],
+        [ 40, 550, '15/08/2026' ], [ 120, 550, 'SEM VALOR' ]
       ]
     )
   end
@@ -27,7 +27,7 @@ RSpec.describe Parsers::SicrediAccountStatementPdf do
     described_class.new(statement, reader).call
 
     expect(statement.transactions.order(:transaction_date).pluck(:name, :amount, :transaction_type)).to eq(
-      [['PAGAMENTO PIX 123 JOHN', 19.0, 'debit'], ['RECEBIMENTO PIX', 1000.5, 'credit']]
+      [ [ 'PAGAMENTO PIX 123 JOHN', 19.0, 'debit' ], [ 'RECEBIMENTO PIX', 1000.5, 'credit' ] ]
     )
   end
 
@@ -35,6 +35,6 @@ RSpec.describe Parsers::SicrediAccountStatementPdf do
     described_class.new(statement, reader).call
 
     expect(statement.transactions.where("name LIKE 'PAGTO%'")).to be_empty
-    expect(statement.summary_lines.failed.pluck(:error)).to eq(['amount_not_found'])
+    expect(statement.summary_lines.failed.pluck(:error)).to eq([ 'amount_not_found' ])
   end
 end

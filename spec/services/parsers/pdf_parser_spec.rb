@@ -27,6 +27,6 @@ RSpec.describe Parsers::PdfParser do
 
     described_class.new(statement).call
 
-    expect(statement.transactions.pluck(:name, :amount, :transaction_type)).to eq([['COMPRA MERCADO', 45.9, 'debit']])
+    expect(statement.transactions.pluck(:name, :amount, :transaction_type)).to eq([ [ 'COMPRA MERCADO', 45.9, 'debit' ] ])
   end
 end

@@ -10,7 +10,7 @@ module StatementHelpers
   # that the parser skips, then `date;description;;"R$ value";;;card` rows.
   def sicredi_csv(*rows)
     preamble = Array.new(15) { |i| "Resumo linha #{i};\"R$ 1,00\";;;;" }
-    (["Header;Cartao;;;;"] + preamble + rows).join("\n")
+    ([ "Header;Cartao;;;;" ] + preamble + rows).join("\n")
   end
 end
 

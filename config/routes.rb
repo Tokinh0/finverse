@@ -17,7 +17,7 @@ Rails.application.routes.draw do
         get :monthly_by_category
         get :monthly_by_subcategory
       end
-      get :portfolio_dashboard, to: 'portfolio_dashboard#index'
+      get :portfolio_dashboard, to: "portfolio_dashboard#index"
     end
   end
 end

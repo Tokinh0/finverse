@@ -1,0 +1,10 @@
+# Rails' standard style (https://github.com/rails/rubocop-rails-omakase)
+inherit_gem:
+  rubocop-rails-omakase: rubocop.yml
+
+AllCops:
+  Exclude:
+    - "db/schema.rb"
+    - "bin/**/*"
+    - "vendor/**/*"
+    - "tmp/**/*"

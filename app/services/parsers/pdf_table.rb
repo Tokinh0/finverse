@@ -9,10 +9,10 @@ module Parsers
       # Text of runs whose x start falls in [min_x, max_x), top-to-bottom, left-to-right.
       def text_in(min_x, max_x)
         runs.select { |r| r.x >= min_x && r.x < max_x }
-            .sort_by { |r| [-r.y.round(1), r.x] }
+            .sort_by { |r| [ -r.y.round(1), r.x ] }
             .map { |r| r.text.strip }
-            .join(' ')
-            .squeeze(' ')
+            .join(" ")
+            .squeeze(" ")
             .strip
       end
 
@@ -44,7 +44,7 @@ module Parsers
     end
 
     def brl_to_f(value)
-      value.delete('.').tr(',', '.').to_f
+      value.delete(".").tr(",", ".").to_f
     end
   end
 end

@@ -14,7 +14,7 @@ RSpec.describe 'Api::V1::Transactions' do
         'id' => transaction.id, 'amount' => 12.5, 'transaction_date' => '2025-03-02',
         'subcategory' => a_hash_including('id' => food.id), 'category' => a_hash_including('id' => food.category_id)
       ))
-      expect(json['meta']).to include('total_count' => 1, 'total_amount' => 12.5, 'page' => 1, 'per_page' => 10, 'months' => ['2025-03'])
+      expect(json['meta']).to include('total_count' => 1, 'total_amount' => 12.5, 'page' => 1, 'per_page' => 10, 'months' => [ '2025-03' ])
     end
   end
 

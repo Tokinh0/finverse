@@ -30,7 +30,7 @@ module Alerts
     # Merchant identity for comparisons: the normalized name without digits, so
     # "PAGAMENTO_PIX_123_JOAO" and "PAGAMENTO_PIX_456_JOAO" are the same merchant.
     def self.merchant_key(transaction)
-      (transaction.parsed_name || StringUtils.default_string_parse(transaction.name)).gsub(/\d+/, '').squeeze('_').delete_prefix('_').delete_suffix('_')
+      (transaction.parsed_name || StringUtils.default_string_parse(transaction.name)).gsub(/\d+/, "").squeeze("_").delete_prefix("_").delete_suffix("_")
     end
 
     attr_reader :month
@@ -46,9 +46,9 @@ module Alerts
       alerts = duplicates + new_merchants + amount_changes + unusual_amounts
       dismissed = AlertDismissal.where(parsed_transaction_id: alerts.map { |a| a.transaction.id })
                                 .pluck(:parsed_transaction_id, :kind).to_set
-      alerts.each { |alert| alert.dismissed = dismissed.include?([alert.transaction.id, alert.kind]) }
+      alerts.each { |alert| alert.dismissed = dismissed.include?([ alert.transaction.id, alert.kind ]) }
       alerts = alerts.reject(&:dismissed) unless @include_dismissed
-      alerts.sort_by { |a| [-a.transaction.transaction_date.to_i, a.kind] }
+      alerts.sort_by { |a| [ -a.transaction.transaction_date.to_i, a.kind ] }
     end
 
     private
@@ -77,7 +77,7 @@ module Alerts
         end
         next unless twin
 
-        alert('duplicate', t, "Same merchant and amount as a charge on #{twin.transaction_date.to_date.strftime('%d/%m/%Y')}",
+        alert("duplicate", t, "Same merchant and amount as a charge on #{twin.transaction_date.to_date.strftime('%d/%m/%Y')}",
               related_transaction_id: twin.id)
       end
     end
@@ -89,10 +89,10 @@ module Alerts
       first_seen = current.select { |t| t.subcategory&.fallback? }.group_by { |t| self.class.merchant_key(t) }.reject { |key, _| known.include?(key) }
 
       first_seen.values.filter_map do |charges|
-        first = charges.min_by { |t| [t.transaction_date, t.id] }
+        first = charges.min_by { |t| [ t.transaction_date, t.id ] }
         next if first.amount < NEW_MERCHANT_MIN_AMOUNT
 
-        alert('new_merchant', first, "First charge from this merchant in the last #{HISTORY_MONTHS} months")
+        alert("new_merchant", first, "First charge from this merchant in the last #{HISTORY_MONTHS} months")
       end
     end
 
@@ -101,7 +101,7 @@ module Alerts
       by_merchant = history.group_by { |t| self.class.merchant_key(t) }
 
       current.filter_map do |t|
-        monthly = (by_merchant[self.class.merchant_key(t)] || []).group_by { |h| h.transaction_date.strftime('%Y-%m') }
+        monthly = (by_merchant[self.class.merchant_key(t)] || []).group_by { |h| h.transaction_date.strftime("%Y-%m") }
         next if monthly.size < RECURRING_MIN_MONTHS || monthly.values.any? { |charges| charges.size > 1 }
 
         amounts = monthly.values.flatten.map(&:amount)
@@ -109,7 +109,7 @@ module Alerts
         next unless amounts.all? { |a| (a - reference).abs <= reference * RECURRING_STABLE_TOLERANCE }
         next unless (t.amount - reference).abs > reference * RECURRING_CHANGE_THRESHOLD
 
-        alert('amount_changed', t, "Recurring charge changed from #{brl(reference)} to #{brl(t.amount)}",
+        alert("amount_changed", t, "Recurring charge changed from #{brl(reference)} to #{brl(t.amount)}",
               expected_amount: reference.to_f.round(2))
       end
     end
@@ -126,7 +126,7 @@ module Alerts
         typical = median(past)
         next unless t.amount > typical * UNUSUAL_MULTIPLIER
 
-        alert('unusual_amount', t, "#{(t.amount / typical).round(1)}× the usual #{brl(typical)} for #{t.subcategory.name}",
+        alert("unusual_amount", t, "#{(t.amount / typical).round(1)}× the usual #{brl(typical)} for #{t.subcategory.name}",
               expected_amount: typical.to_f.round(2))
       end
     end
@@ -142,11 +142,11 @@ module Alerts
     end
 
     def brl(value)
-      format('R$ %.2f', value).tr('.', ',')
+      format("R$ %.2f", value).tr(".", ",")
     end
 
     def parse_month(value)
-      Date.strptime(value.to_s, '%Y-%m') if value.present?
+      Date.strptime(value.to_s, "%Y-%m") if value.present?
     rescue Date::Error
       nil
     end

@@ -7,7 +7,7 @@ RSpec.describe 'Api::V1::Reports' do
     get '/api/v1/reports/monthly_by_category'
 
     expect(json.keys).to contain_exactly('credit', 'debit')
-    expect(json['debit'].keys).to eq(['2025-03'])
+    expect(json['debit'].keys).to eq([ '2025-03' ])
   end
 
   it 'returns the monthly report by subcategory' do

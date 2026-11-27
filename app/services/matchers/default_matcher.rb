@@ -10,12 +10,12 @@ module Matchers
       # @param keywords [Enumerable<Keyword>] pass a preloaded list when matching many names
       def find_best_keyword_match(word, keywords = Keyword.all)
         parsed_name = StringUtils.default_string_parse(word)
-        keywords.map { |kw| [kw, match_score(parsed_name, kw.parsed_name)] }
+        keywords.map { |kw| [ kw, match_score(parsed_name, kw.parsed_name) ] }
                 .select { |_, score| score.positive? }
                 .max_by { |_, score| score }
                 &.first
       end
-    
+
       def match_score(input, keyword)
         return 4 if input == keyword                     # Exact match
         return 3 if input.include?(" #{keyword} ")       # Whole word match

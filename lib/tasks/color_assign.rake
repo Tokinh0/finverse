@@ -31,7 +31,7 @@ namespace :db do
       palette = theme == :income ? income_palette : expense_palette
 
       # build the ordered list: first the category itself, then its subcategories
-      items = [category] + category.subcategories.to_a
+      items = [ category ] + category.subcategories.to_a
 
       items.each_with_index do |item, idx|
         color = palette[idx % palette.length]

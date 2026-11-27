@@ -6,7 +6,7 @@ module Api::V1
       alerts = detector.call
 
       render json: {
-        month: detector.month&.strftime('%Y-%m'),
+        month: detector.month&.strftime("%Y-%m"),
         alerts: alerts.map do |alert|
           {
             kind: alert.kind,

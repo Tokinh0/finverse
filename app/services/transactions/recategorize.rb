@@ -31,7 +31,7 @@ module Transactions
         Result.new(success?: true, transaction: transaction, keyword: keyword, updated_count: updated, errors: [])
       end
     rescue ActiveRecord::RecordInvalid, ArgumentError => e
-      record_errors = e.respond_to?(:record) ? e.record.errors.full_messages : [e.message]
+      record_errors = e.respond_to?(:record) ? e.record.errors.full_messages : [ e.message ]
       Result.new(success?: false, transaction: transaction, keyword: nil, updated_count: 0, errors: record_errors)
     end
 
@@ -51,7 +51,7 @@ module Transactions
       keywords = Keyword.all.to_a
       candidates = Transaction.where.not(id: transaction.id)
                               .where.not(subcategory_id: keyword.subcategory_id)
-                              .where('parsed_name LIKE ?', "%#{ActiveRecord::Base.sanitize_sql_like(keyword.parsed_name)}%")
+                              .where("parsed_name LIKE ?", "%#{ActiveRecord::Base.sanitize_sql_like(keyword.parsed_name)}%")
 
       ids = candidates.select { |t| Matchers::DefaultMatcher.find_best_keyword_match(t.name, keywords)&.id == keyword.id }.map(&:id)
       Transaction.where(id: ids).update_all(subcategory_id: keyword.subcategory_id, updated_at: Time.current)

@@ -20,7 +20,7 @@ RSpec.describe 'Presenters' do
       subcategory = create(:subcategory)
 
       expect(described_class.new(subcategory.category).as_json[:subcategories]).to eq(
-        [{ id: subcategory.id, name: subcategory.name, color_code: subcategory.color_code, subcategory_type: 'expense' }]
+        [ { id: subcategory.id, name: subcategory.name, color_code: subcategory.color_code, subcategory_type: 'expense' } ]
       )
     end
   end

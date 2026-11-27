@@ -6,10 +6,10 @@ RSpec.describe Parsers::SicrediCreditCardPdf do
     fake_pdf_reader(
       text: first_page_text,
       runs: [
-        [40, 700, '23/dez 18:52'], [240, 700, 'Lanchonete Exemplo Ltda'], [500, 700, 'R$ 60,28'],
-        [40, 650, '02/jan 10:00'], [240, 650, 'Loja Parcelada'], [350, 650, '02/10'], [500, 650, 'R$ 100,00'],
-        [40, 600, '05/jan 09:00'], [240, 600, 'Pagamento 000000000'], [500, 600, '-R$ 1.500,00'],
-        [40, 550, '06/jan 09:00'], [240, 550, 'Estorno Loja'], [500, 550, '-R$ 10,00']
+        [ 40, 700, '23/dez 18:52' ], [ 240, 700, 'Lanchonete Exemplo Ltda' ], [ 500, 700, 'R$ 60,28' ],
+        [ 40, 650, '02/jan 10:00' ], [ 240, 650, 'Loja Parcelada' ], [ 350, 650, '02/10' ], [ 500, 650, 'R$ 100,00' ],
+        [ 40, 600, '05/jan 09:00' ], [ 240, 600, 'Pagamento 000000000' ], [ 500, 600, '-R$ 1.500,00' ],
+        [ 40, 550, '06/jan 09:00' ], [ 240, 550, 'Estorno Loja' ], [ 500, 550, '-R$ 10,00' ]
       ]
     )
   end
@@ -33,7 +33,7 @@ RSpec.describe Parsers::SicrediCreditCardPdf do
     described_class.new(statement, reader).call
 
     expect(statement.transactions.pluck(:name, :transaction_type)).to contain_exactly(
-      ['Lanchonete Exemplo Ltda', 'debit'], ['Loja Parcelada', 'debit'], ['Estorno Loja', 'credit']
+      [ 'Lanchonete Exemplo Ltda', 'debit' ], [ 'Loja Parcelada', 'debit' ], [ 'Estorno Loja', 'credit' ]
     )
   end
 end

@@ -18,7 +18,7 @@ module Parsers
     PAYMENT = /\APagamento\b/i
 
     def self.matches?(first_page_text)
-      first_page_text.match?(/Mastercard .*final/) && first_page_text.include?('Resumo da fatura')
+      first_page_text.match?(/Mastercard .*final/) && first_page_text.include?("Resumo da fatura")
     end
 
     def initialize(monthly_statement, reader)
@@ -40,7 +40,7 @@ module Parsers
             name: row[:name],
             amount: row[:amount],
             transaction_date: row[:date],
-            transaction_type: row[:amount].negative? ? 'credit' : 'debit'
+            transaction_type: row[:amount].negative? ? "credit" : "debit"
           },
           row[:raw]
         )
@@ -50,7 +50,7 @@ module Parsers
     def due_date
       @due_date ||= begin
         text = @reader.pages.first(2).map(&:text).join("\n")
-        Date.strptime(text[%r{Vencimento (\d{2}/\d{2}/\d{4})}, 1], '%d/%m/%Y')
+        Date.strptime(text[%r{Vencimento (\d{2}/\d{2}/\d{4})}, 1], "%d/%m/%Y")
       end
     end
 
@@ -67,13 +67,13 @@ module Parsers
       installment = row.text_in(INSTALLMENT_X.begin, INSTALLMENT_X.end).presence
       amount_run = row.same_line_runs.select { |r| r.x >= AMOUNT_MIN_X }
                       .reverse.find { |r| r.text.strip.match?(AMOUNT) }
-      raw = [row.anchor, description, installment, amount_run&.text&.strip].compact
+      raw = [ row.anchor, description, installment, amount_run&.text&.strip ].compact
 
-      return { raw: raw, error: 'amount_not_found' } unless amount_run
-      return { raw: raw, error: 'description_not_found' } if description.blank?
+      return { raw: raw, error: "amount_not_found" } unless amount_run
+      return { raw: raw, error: "description_not_found" } if description.blank?
 
       sign, value = amount_run.text.strip.match(AMOUNT).captures
-      amount = PdfTable.brl_to_f(value) * (sign == '-' ? -1 : 1)
+      amount = PdfTable.brl_to_f(value) * (sign == "-" ? -1 : 1)
 
       {
         raw: raw,
@@ -85,7 +85,7 @@ module Parsers
     end
 
     def infer_date(anchor)
-      day, month_name = anchor.split.first.split('/')
+      day, month_name = anchor.split.first.split("/")
       month = MONTHS.index(month_name.downcase) + 1
       year = month > due_date.month ? due_date.year - 1 : due_date.year
       Date.new(year, month, day.to_i)

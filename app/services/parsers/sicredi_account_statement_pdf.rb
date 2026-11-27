@@ -15,8 +15,8 @@ module Parsers
     DESCRIPTIONS_TO_IGNORE = %w[PAGTO_FATURA PAGAMENTO_DE_FATURA_CARTAO].freeze
 
     def self.matches?(first_page_text)
-      first_page_text.include?('Extrato de conta corrente') &&
-        first_page_text.include?('Período das movimentações')
+      first_page_text.include?("Extrato de conta corrente") &&
+        first_page_text.include?("Período das movimentações")
     end
 
     def initialize(monthly_statement, reader)
@@ -38,7 +38,7 @@ module Parsers
             name: row[:name],
             amount: row[:amount],
             transaction_date: row[:date],
-            transaction_type: row[:amount].negative? ? 'debit' : 'credit'
+            transaction_type: row[:amount].negative? ? "debit" : "credit"
           },
           row[:raw]
         )
@@ -56,22 +56,22 @@ module Parsers
     def build_row(row)
       description = row.text_in(DESCRIPTION_X.begin, DESCRIPTION_X.end)
       amount_run = row.same_line_runs.reverse.find { |r| r.text.strip.match?(AMOUNT) }
-      raw = [row.anchor, description, amount_run&.text&.strip]
+      raw = [ row.anchor, description, amount_run&.text&.strip ]
 
-      return { raw: raw, error: 'amount_not_found' } unless amount_run
-      return { raw: raw, error: 'description_not_found' } if description.blank?
+      return { raw: raw, error: "amount_not_found" } unless amount_run
+      return { raw: raw, error: "description_not_found" } if description.blank?
 
       sign, value = amount_run.text.strip.match(AMOUNT).captures
-      amount = PdfTable.brl_to_f(value) * (sign == '-' ? -1 : 1)
+      amount = PdfTable.brl_to_f(value) * (sign == "-" ? -1 : 1)
       # Match the legacy layout naming ("PAGAMENTO PIX 0574... NAME"), which keywords rely on.
-      name = description.gsub(/\s+-\s+|\s+-\z/, ' ').squeeze(' ').strip
+      name = description.gsub(/\s+-\s+|\s+-\z/, " ").squeeze(" ").strip
       parsed = default_string_parse(name)
 
       {
         raw: raw,
         name: name,
         amount: amount,
-        date: Date.strptime(row.anchor, '%d/%m/%Y'),
+        date: Date.strptime(row.anchor, "%d/%m/%Y"),
         ignored: DESCRIPTIONS_TO_IGNORE.any? { |w| parsed.include?(w) }
       }
     end

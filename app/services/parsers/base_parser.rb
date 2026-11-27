@@ -17,15 +17,15 @@ module Parsers
       if transaction.save
         SummaryLine.find_or_create_by(
           monthly_statement: monthly_statement,
-          status: 'processed',
+          status: "processed",
           parsed_transaction: transaction,
           content: raw_content.to_json
         )
       else
         SummaryLine.find_or_create_by(
           monthly_statement: monthly_statement,
-          status: 'failed',
-          error: transaction.errors.full_messages.join(', '),
+          status: "failed",
+          error: transaction.errors.full_messages.join(", "),
           content: raw_content.to_json
         )
       end
@@ -40,7 +40,7 @@ module Parsers
     def create_failed_summary(raw_content, error)
       SummaryLine.create!(
         monthly_statement: monthly_statement,
-        status: 'failed',
+        status: "failed",
         error: error,
         content: raw_content.to_json
       )

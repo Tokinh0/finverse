@@ -1,7 +1,7 @@
 class Category < ApplicationRecord
   include Normalizer
 
-  FALLBACK_NAME = 'OUTROS'.freeze
+  FALLBACK_NAME = "OUTROS".freeze
 
   has_many :subcategories, dependent: :destroy
 

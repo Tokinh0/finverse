@@ -19,7 +19,7 @@ RSpec.describe Parsers::CsvParser do
     described_class.new(statement).call
 
     expect(statement.transactions.order(:transaction_date).pluck(:name, :amount, :transaction_type)).to eq(
-      [['IFOOD RESTAURANTE', 60.28, 'debit'], ['LOJA GRANDE', 1234.56, 'debit']]
+      [ [ 'IFOOD RESTAURANTE', 60.28, 'debit' ], [ 'LOJA GRANDE', 1234.56, 'debit' ] ]
     )
     expect(statement.summary_lines.processed.count).to eq(2)
   end
@@ -28,7 +28,7 @@ RSpec.describe Parsers::CsvParser do
     described_class.new(statement).call
 
     expect(statement.transactions.where(name: 'PAG FAT DEB CC')).to be_empty
-    expect(statement.summary_lines.skipped.pluck(:error)).to eq(['malformed_row'])
+    expect(statement.summary_lines.skipped.pluck(:error)).to eq([ 'malformed_row' ])
   end
 
   it 'keeps a failed summary line when a transaction cannot be saved' do

@@ -5,8 +5,8 @@ module MonthlyStatements
   # is kept and the statement is marked as failed with the error on `errors[:file]`.
   class Import
     PARSERS = {
-      'application/pdf' => Parsers::PdfParser,
-      'text/csv' => Parsers::CsvParser
+      "application/pdf" => Parsers::PdfParser,
+      "text/csv" => Parsers::CsvParser
     }.freeze
 
     UnsupportedFileType = Class.new(StandardError)
@@ -26,14 +26,14 @@ module MonthlyStatements
 
         monthly_statement.first_transaction_date = monthly_statement.transactions.minimum(:transaction_date)
         monthly_statement.last_transaction_date = monthly_statement.transactions.maximum(:transaction_date)
-        monthly_statement.status = monthly_statement.summary_lines.failed.exists? ? 'failed' : 'processed'
+        monthly_statement.status = monthly_statement.summary_lines.failed.exists? ? "failed" : "processed"
         monthly_statement.save!
       end
 
       true
     rescue StandardError => e
       Rails.logger.error("Statement #{monthly_statement.id} import failed: #{e.class}: #{e.message}")
-      monthly_statement.update(status: 'failed')
+      monthly_statement.update(status: "failed")
       monthly_statement.errors.add(:file, e.message)
       false
     end

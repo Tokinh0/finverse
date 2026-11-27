@@ -10,7 +10,7 @@ RSpec.describe Alerts::Detector do
   end
 
   def kinds(month = '2025-07')
-    described_class.call(month: month).map { |a| [a.kind, a.transaction.name] }
+    described_class.call(month: month).map { |a| [ a.kind, a.transaction.name ] }
   end
 
   describe '.merchant_key' do
@@ -31,7 +31,7 @@ RSpec.describe Alerts::Detector do
 
     alerts = described_class.call(month: '2025-07').select { |a| a.kind == 'duplicate' }
 
-    expect(alerts.map(&:transaction)).to eq([second])
+    expect(alerts.map(&:transaction)).to eq([ second ])
     expect(alerts.first.details).to include(related_transaction_id: kind_of(Integer))
   end
 
@@ -43,7 +43,7 @@ RSpec.describe Alerts::Detector do
     charge('TINY NEW', 30, Date.new(2025, 7, 4), subcategory: fallback)        # too small
     charge('NEW RESTAURANT', 500, Date.new(2025, 7, 5))                        # categorized by a keyword
 
-    expect(kinds.select { |k, _| k == 'new_merchant' }).to eq([['new_merchant', 'BRAND NEW LTDA']])
+    expect(kinds.select { |k, _| k == 'new_merchant' }).to eq([ [ 'new_merchant', 'BRAND NEW LTDA' ] ])
   end
 
   it 'skips new merchant alerts when there is no history yet' do
@@ -68,7 +68,7 @@ RSpec.describe Alerts::Detector do
   end
 
   it 'flags amounts far above the median of an expense subcategory' do
-    [40, 50, 55, 60, 45].each_with_index { |amount, i| charge("MEAL #{i}", amount, Date.new(2025, 6, i + 1)) }
+    [ 40, 50, 55, 60, 45 ].each_with_index { |amount, i| charge("MEAL #{i}", amount, Date.new(2025, 6, i + 1)) }
     big = charge('MEAL BIG', 400, Date.new(2025, 7, 9))
     charge('MEAL OK', 120, Date.new(2025, 7, 10))
     5.times { |i| charge("APLIC #{i}", 50, Date.new(2025, 6, i + 1), subcategory: savings) }
@@ -76,7 +76,7 @@ RSpec.describe Alerts::Detector do
 
     alerts = described_class.call(month: '2025-07').select { |a| a.kind == 'unusual_amount' }
 
-    expect(alerts.map(&:transaction)).to eq([big])
+    expect(alerts.map(&:transaction)).to eq([ big ])
     expect(alerts.first.message).to eq('8.0× the usual R$ 50,00 for Food')
   end
 
@@ -93,7 +93,7 @@ RSpec.describe Alerts::Detector do
     AlertDismissal.create!(parsed_transaction: second, kind: 'duplicate')
 
     expect(described_class.call(month: '2025-07')).to be_empty
-    expect(described_class.call(month: '2025-07', include_dismissed: 'true').map(&:dismissed)).to eq([true])
+    expect(described_class.call(month: '2025-07', include_dismissed: 'true').map(&:dismissed)).to eq([ true ])
   end
 
   it 'defaults to the latest month with debits' do

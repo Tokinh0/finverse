@@ -3,7 +3,7 @@ module Keywords
   # comparing it against the keyword lists from the seed data file
   # (`debit_keywords`, `credit_keywords`, `ignored_keywords`).
   class TypeInference
-    LISTS = { debit: 'debit_keywords', credit: 'credit_keywords', ignored: 'ignored_keywords' }.freeze
+    LISTS = { debit: "debit_keywords", credit: "credit_keywords", ignored: "ignored_keywords" }.freeze
 
     class << self
       def call(parsed_name)
@@ -12,7 +12,7 @@ module Keywords
         end
 
         # Ties (including "no match at all") resolve in LISTS order, so an unmatched name is a debit.
-        scores.max_by { |type, score| [score, -LISTS.keys.index(type)] }.first
+        scores.max_by { |type, score| [ score, -LISTS.keys.index(type) ] }.first
       end
 
       def keywords_for(type)
