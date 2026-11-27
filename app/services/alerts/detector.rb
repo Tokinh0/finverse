@@ -27,10 +27,8 @@ module Alerts
       new(month: month, include_dismissed: include_dismissed).call
     end
 
-    # Merchant identity for comparisons: the normalized name without digits, so
-    # "PAGAMENTO_PIX_123_JOAO" and "PAGAMENTO_PIX_456_JOAO" are the same merchant.
     def self.merchant_key(transaction)
-      (transaction.parsed_name || StringUtils.default_string_parse(transaction.name)).gsub(/\d+/, "").squeeze("_").delete_prefix("_").delete_suffix("_")
+      Transactions::Merchant.key(transaction)
     end
 
     attr_reader :month

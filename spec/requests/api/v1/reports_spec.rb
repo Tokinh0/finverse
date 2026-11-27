@@ -15,4 +15,11 @@ RSpec.describe 'Api::V1::Reports' do
 
     expect(json['debit']['2025-03']).to include('total' => 10.5)
   end
+
+  it "returns the financial health report" do
+    get "/api/v1/reports/financial_health", params: { period: 1 }
+
+    expect(json).to include("as_of" => "2025-03", "period_months" => 1)
+    expect(json.keys).to include("summary", "categories", "trends", "year")
+  end
 end

@@ -16,6 +16,7 @@ Rails.application.routes.draw do
       namespace :reports do
         get :monthly_by_category
         get :monthly_by_subcategory
+        get :financial_health
       end
       get :portfolio_dashboard, to: "portfolio_dashboard#index"
     end
