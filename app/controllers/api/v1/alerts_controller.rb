@@ -26,7 +26,7 @@ module Api::V1
       if dismissal.save
         head :no_content
       else
-        render json: { errors: dismissal.errors.full_messages }, status: :unprocessable_entity
+        render json: { errors: dismissal.errors.full_messages }, status: :unprocessable_content
       end
     end
 

@@ -37,7 +37,7 @@ RSpec.describe 'Api::V1::Transactions' do
 
       patch "/api/v1/transactions/#{transaction.id}", params: { transaction: { subcategory_id: 0 } }, as: :json
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       expect(json['errors']).to include('Subcategory must exist')
     end
   end

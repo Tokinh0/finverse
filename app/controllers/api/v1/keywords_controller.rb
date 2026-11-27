@@ -17,7 +17,7 @@ module Api::V1
       if keyword.save
         render json: KeywordPresenter.new(keyword), status: :created
       else
-        render json: keyword.errors, status: :unprocessable_entity
+        render json: keyword.errors, status: :unprocessable_content
       end
     end
 
@@ -25,7 +25,7 @@ module Api::V1
       if @keyword.update(keyword_params)
         render json: KeywordPresenter.new(@keyword)
       else
-        render json: @keyword.errors, status: :unprocessable_entity
+        render json: @keyword.errors, status: :unprocessable_content
       end
     end
 

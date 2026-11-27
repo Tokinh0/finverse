@@ -19,7 +19,7 @@ RSpec.describe 'Api::V1::MonthlyStatements' do
   it 'responds 422 for unsupported files' do
     upload('hello', filename: 'notes.txt', content_type: 'text/plain')
 
-    expect(response).to have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
     expect(json['file'].first).to match(/Unsupported file type/)
   end
 

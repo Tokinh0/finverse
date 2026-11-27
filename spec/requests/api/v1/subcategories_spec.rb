@@ -21,7 +21,7 @@ RSpec.describe 'Api::V1::Subcategories' do
   it 'returns validation errors' do
     post '/api/v1/subcategories', params: { subcategory: { name: '', category_id: category.id } }
 
-    expect(response).to have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
   end
 
   it 'updates and destroys a subcategory' do
@@ -38,7 +38,7 @@ RSpec.describe 'Api::V1::Subcategories' do
 
     delete "/api/v1/subcategories/#{fallback.id}"
 
-    expect(response).to have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
     expect(json['errors'].first).to match(/cannot be deleted/)
   end
 end

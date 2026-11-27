@@ -19,7 +19,7 @@ module Api::V1
           summary_lines: @monthly_statement.summary_lines.map { |s| SummaryLinePresenter.new(s) }
         }, status: :created
       else
-        render json: @monthly_statement.errors, status: :unprocessable_entity
+        render json: @monthly_statement.errors, status: :unprocessable_content
       end
     end
 

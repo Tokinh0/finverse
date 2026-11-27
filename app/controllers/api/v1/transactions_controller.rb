@@ -26,7 +26,7 @@ module Api::V1
           updated_count: result.updated_count
         }
       else
-        render json: { errors: result.errors }, status: :unprocessable_entity
+        render json: { errors: result.errors }, status: :unprocessable_content
       end
     end
 

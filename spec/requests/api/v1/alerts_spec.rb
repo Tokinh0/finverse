@@ -31,6 +31,6 @@ RSpec.describe 'Api::V1::Alerts' do
   it 'rejects unknown kinds' do
     post '/api/v1/alerts/dismiss', params: { transaction_id: second.id, kind: 'whatever' }
 
-    expect(response).to have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
   end
 end

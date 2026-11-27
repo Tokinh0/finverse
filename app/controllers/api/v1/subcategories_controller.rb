@@ -17,7 +17,7 @@ module Api::V1
       if subcategory.save
         render json: SubcategoryPresenter.new(subcategory), status: :created
       else
-        render json: subcategory.errors, status: :unprocessable_entity
+        render json: subcategory.errors, status: :unprocessable_content
       end
     end
 
@@ -25,7 +25,7 @@ module Api::V1
       if @subcategory.update(subcategory_params)
         render json: SubcategoryPresenter.new(@subcategory)
       else
-        render json: @subcategory.errors, status: :unprocessable_entity
+        render json: @subcategory.errors, status: :unprocessable_content
       end
     end
 
@@ -33,7 +33,7 @@ module Api::V1
       if @subcategory.destroy
         head :no_content
       else
-        render json: { errors: @subcategory.errors.full_messages }, status: :unprocessable_entity
+        render json: { errors: @subcategory.errors.full_messages }, status: :unprocessable_content
       end
     end
 
