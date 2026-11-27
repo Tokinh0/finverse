@@ -10,7 +10,7 @@ module Api::V1
       if run
         render json: SuggestionRunPresenter.new(run), status: :created
       else
-        render json: { errors: [ "Nothing to suggest, or suggestions are already being generated" ] }, status: :unprocessable_content
+        render json: { errors: [ I18n.t("suggestions.nothing_to_suggest") ] }, status: :unprocessable_content
       end
     end
   end

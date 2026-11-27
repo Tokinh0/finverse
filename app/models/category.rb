@@ -25,7 +25,7 @@ class Category < ApplicationRecord
   def prevent_fallback_destroy
     return unless fallback?
 
-    errors.add(:base, 'The "Outros" fallback category cannot be deleted')
+    errors.add(:base, I18n.t("fallback.category_undeletable"))
     throw :abort
   end
 end

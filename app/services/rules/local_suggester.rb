@@ -37,7 +37,7 @@ module Rules
         SuggestionWriter.call(
           Change.new(action: "create", name: key.tr("_", " "), subcategory_id: subcategory_id),
           origin: "local", run: run, confidence: [ 0.6 + (0.1 * count), 0.95 ].min.round(2),
-          reason: "You moved #{count} transactions from this merchant to #{label} by hand"
+          reason: I18n.t("rules.repeated_corrections", count: count, label: label)
         )
       end
     end
@@ -52,7 +52,7 @@ module Rules
         SuggestionWriter.call(
           Change.new(action: "update", keyword: entry.keyword, subcategory_id: target.id),
           origin: "local", run: run, confidence: 0.75,
-          reason: "You moved #{entry.top_override_count} of this rule's transactions to #{target.category.name} / #{target.name}"
+          reason: I18n.t("rules.overridden_rule", count: entry.top_override_count, label: "#{target.category.name} / #{target.name}")
         )
       end
     end

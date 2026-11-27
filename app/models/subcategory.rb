@@ -35,7 +35,7 @@ class Subcategory < ApplicationRecord
 
   def move_transactions_to_fallback
     if fallback?
-      errors.add(:base, 'The "Outros" fallback subcategory cannot be deleted')
+      errors.add(:base, I18n.t("fallback.subcategory_undeletable"))
       throw :abort
     end
     return unless transactions.exists?
@@ -45,7 +45,7 @@ class Subcategory < ApplicationRecord
       updated_at: Time.current
     )
   rescue RuntimeError => e
-    errors.add(:base, "Cannot move this subcategory's transactions: #{e.message}")
+    errors.add(:base, I18n.t("fallback.cannot_move_transactions", error: e.message))
     throw :abort
   end
 end

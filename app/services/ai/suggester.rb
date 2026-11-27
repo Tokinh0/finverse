@@ -125,7 +125,7 @@ module Ai
       client.messages.create(
         model: client.model,
         max_tokens: MAX_TOKENS,
-        system_: SYSTEM_PROMPT,
+        system_: "#{SYSTEM_PROMPT}\nWrite every `reason` in #{I18n.t('ai.language')}.",
         output_config: { effort: EFFORT, format_: { type: :json_schema, schema: SCHEMA } },
         messages: [ { role: "user", content: payload.to_json } ]
       )
@@ -134,15 +134,15 @@ module Ai
     def parse(message)
       case message.stop_reason
       when :refusal
-        raise Client::Error.new("refused", "Claude declined to answer for this batch.")
+        raise Client::Error.new("refused")
       when :max_tokens
-        raise Client::Error.new("bad_response", "Claude's answer was cut off. Try again with fewer transactions.")
+        raise Client::Error.new("bad_response", key: "truncated")
       end
 
       text = message.content.find { _1.type == :text }&.text
       JSON.parse(text.to_s)
     rescue JSON::ParserError
-      raise Client::Error.new("bad_response", "Claude's answer wasn't valid JSON.")
+      raise Client::Error.new("bad_response", key: "invalid_json")
     end
   end
 end

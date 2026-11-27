@@ -51,4 +51,12 @@ RSpec.describe Suggestions::HistoryMatcher do
 
     expect(described_class.call([ group('PADARIA EXEMPLO') ])['PADARIA_EXEMPLO'].reason).to end_with('(your note: "Breakfast place near work")')
   end
+
+  it 'writes the reason in the current language' do
+    confirmed('PADARIA EXEMPLO', bakery)
+
+    reason = I18n.with_locale(:'pt-BR') { described_class.call([ group('PADARIA EXEMPLO') ])['PADARIA_EXEMPLO'].reason }
+
+    expect(reason).to start_with('Você colocou 1 transação deste estabelecimento em')
+  end
 end

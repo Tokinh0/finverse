@@ -48,4 +48,12 @@ RSpec.describe Ai::Suggester do
         expect { described_class.new(client).call([ group ]) }.to raise_error(Ai::Client::Error) { expect(_1.code).to eq(code) }
       end
   end
+
+  it 'asks Claude to write reasons in the language set in Settings' do
+    stub_claude_message({ category_suggestions: [], rule_suggestions: [] })
+
+    I18n.with_locale(:'pt-BR') { described_class.new(client).call([ group ]) }
+
+    expect(claude_request_body['system']).to end_with('Write every `reason` in Brazilian Portuguese.')
+  end
 end

@@ -1,33 +1,63 @@
-# Files in the config/locales directory are used for internationalization
-# and are automatically loaded by Rails. If you want to use locales other
-# than English, add the necessary files in this directory.
-#
-# To use the locales, use `I18n.t`:
-#
-#     I18n.t 'hello'
-#
-# In views, this is aliased to just `t`:
-#
-#     <%= t('hello') %>
-#
-# To use a different locale, set it with `I18n.locale`:
-#
-#     I18n.locale = :es
-#
-# This would use the information in config/locales/es.yml.
-#
-# The following keys must be escaped otherwise they will not be retrieved by
-# the default I18n backend:
-#
-# true, false, on, off, yes, no
-#
-# Instead, surround them with single quotes.
-#
-# en:
-#   'true': 'foo'
-#
-# To learn more, please read the Rails Internationalization guide
-# available at http://guides.rubyonrails.org/i18n.html.
-
+# Messages the API shows to the owner. pt-BR.yml must have the same keys
+# (spec/i18n_spec.rb checks it). The language comes from AppSetting#locale.
 en:
-  hello: "Hello world"
+  date:
+    formats:
+      short: "%m/%d/%Y"
+  ai:
+    language: "English"
+    errors:
+      not_configured: "No Claude API key is configured."
+      invalid_key: "Your Claude API key was rejected. Update it in Settings."
+      rate_limited: "Claude's rate limit was reached. Suggestions will be retried shortly."
+      billing: "Your Anthropic account has no credit left. Add credit in the Claude Console."
+      timeout: "Claude took too long to answer. Try again later."
+      unavailable: "Couldn't reach the Claude API. Check the connection and try again."
+      server_error: "The Claude API is having problems. Suggestions will be retried shortly."
+      bad_request: "Claude rejected the request (%{error}). Check the model name in Settings."
+      api_error: "The Claude API returned an error (HTTP %{status})."
+      refused: "Claude declined to answer for this batch."
+      truncated: "Claude's answer was cut off. Try again with fewer transactions."
+      invalid_json: "Claude's answer wasn't valid JSON."
+  suggestions:
+    internal_error: "Something went wrong while generating suggestions."
+    nothing_to_suggest: "Nothing to suggest, or suggestions are already being generated"
+    already_decided: "This suggestion was already %{status}"
+    already_categorized: "The transaction was already categorized"
+    cannot_move: "Couldn't move the transaction"
+    bulk_filter_required: "Give min_confidence or merchant_key"
+    statuses:
+      pending: "pending"
+      accepted: "accepted"
+      rejected: "rejected"
+      dismissed: "dismissed"
+      superseded: "superseded"
+    history_reason:
+      one: "You put 1 transaction from this merchant in %{label}"
+      other: "You put %{count} transactions from this merchant in %{label}"
+    note_suffix: " (your note: \"%{note}\")"
+  rules:
+    repeated_corrections: "You moved %{count} transactions from this merchant to %{label} by hand"
+    overridden_rule: "You moved %{count} of this rule's transactions to %{label}"
+  transactions:
+    only_uncategorized_can_be_marked: "Only uncategorized transactions can be marked"
+  statements:
+    already_imported: "This file was already imported (statement #%{id})"
+    transactions_already_imported: "%{count} of %{total} transactions were already imported from another statement"
+    unsupported_file_type: "Unsupported file type: %{type}"
+  alerts:
+    duplicate: "Same merchant and amount as a charge on %{date}"
+    new_merchant: "First charge from this merchant in the last %{months} months"
+    amount_changed: "Recurring charge changed from %{from} to %{to}"
+    unusual_amount: "%{ratio}× the usual %{typical} for %{subcategory}"
+  fallback:
+    category_undeletable: "The \"Outros\" fallback category cannot be deleted"
+    subcategory_undeletable: "The \"Outros\" fallback subcategory cannot be deleted"
+    cannot_move_transactions: "Cannot move this subcategory's transactions: %{error}"
+  activerecord:
+    errors:
+      models:
+        keyword:
+          attributes:
+            max_amount:
+              below_minimum: "must be greater than or equal to the minimum amount"

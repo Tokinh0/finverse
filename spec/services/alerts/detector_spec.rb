@@ -33,6 +33,16 @@ RSpec.describe Alerts::Detector do
 
     expect(alerts.map(&:transaction)).to eq([ second ])
     expect(alerts.first.details).to include(related_transaction_id: kind_of(Integer))
+    expect(alerts.first.message).to eq('Same merchant and amount as a charge on 07/10/2025')
+  end
+
+  it 'writes alert messages and dates in Portuguese when that is the language' do
+    charge('NETFLIX', 55.9, Date.new(2025, 7, 10))
+    charge('NETFLIX', 55.9, Date.new(2025, 7, 10))
+
+    message = I18n.with_locale(:'pt-BR') { described_class.call(month: '2025-07').find { _1.kind == 'duplicate' }.message }
+
+    expect(message).to eq('Mesmo estabelecimento e valor de uma cobrança em 10/07/2025')
   end
 
   it 'flags uncategorized merchants never seen before, from R$ 100' do

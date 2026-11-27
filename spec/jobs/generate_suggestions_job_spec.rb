@@ -12,17 +12,17 @@ RSpec.describe GenerateSuggestionsJob do
   end
 
   it 'retries retryable errors and marks the run failed after the last attempt' do
-    allow(Suggestions::Generate).to receive(:call).and_raise(Ai::Client::RetryableError.new('rate_limited', 'Rate limited'))
+    allow(Suggestions::Generate).to receive(:call).and_raise(Ai::Client::RetryableError.new('rate_limited'))
 
     job = described_class.new(run.id)
     job.exception_executions = { '[Ai::Client::RetryableError]' => 3 }
     job.perform_now
 
-    expect(run.reload).to have_attributes(status: 'failed', error_code: 'rate_limited', error_message: 'Rate limited')
+    expect(run.reload).to have_attributes(status: 'failed', error_code: 'rate_limited', error_message: /rate limit was reached/)
   end
 
   it 'schedules a retry before the last attempt' do
-    allow(Suggestions::Generate).to receive(:call).and_raise(Ai::Client::RetryableError.new('timeout', 'Slow'))
+    allow(Suggestions::Generate).to receive(:call).and_raise(Ai::Client::RetryableError.new('timeout'))
 
     expect { described_class.perform_now(run.id) }.to have_enqueued_job(described_class).with(run.id)
   end

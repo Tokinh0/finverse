@@ -39,6 +39,6 @@ class Keyword < ApplicationRecord
   def amount_range_order
     return unless min_amount && max_amount && min_amount > max_amount
 
-    errors.add(:max_amount, "must be greater than or equal to the minimum amount")
+    errors.add(:max_amount, :below_minimum)
   end
 end

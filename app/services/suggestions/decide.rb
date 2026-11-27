@@ -32,7 +32,7 @@ module Suggestions
       end
       return Result.new(success?: true, suggestion: suggestion, errors: []) if errors.empty?
 
-      Result.new(success?: false, suggestion: suggestion.reload, errors: errors)
+      Result.new(success?: false, suggestion: suggestion.reload, errors: errors.presence || [ I18n.t("suggestions.cannot_move") ])
     end
 
     # "No idea": the transaction stays where it is and gets no more suggestions. Not a rejection.
@@ -53,7 +53,7 @@ module Suggestions
     # Accepts every pending suggestion at or above `min_confidence` and/or for one merchant.
     # @return [Integer] how many were accepted
     def bulk_accept(min_confidence: nil, merchant_key: nil)
-      raise ArgumentError, "Give min_confidence or merchant_key" if min_confidence.blank? && merchant_key.blank?
+      raise ArgumentError, I18n.t("suggestions.bulk_filter_required") if min_confidence.blank? && merchant_key.blank?
 
       scope = CategorySuggestion.pending.includes(:parsed_transaction)
       scope = scope.where(confidence: min_confidence.to_d..) if min_confidence.present?
@@ -63,12 +63,13 @@ module Suggestions
     end
 
     def stale(suggestion)
-      Result.new(success?: false, suggestion: suggestion, errors: [ "This suggestion was already #{suggestion.status}" ])
+      Result.new(success?: false, suggestion: suggestion,
+                 errors: [ I18n.t("suggestions.already_decided", status: I18n.t("suggestions.statuses.#{suggestion.status}")) ])
     end
 
     def supersede(suggestion)
       suggestion.update!(status: "superseded", decided_at: Time.current)
-      Result.new(success?: false, suggestion: suggestion, errors: [ "The transaction was already categorized" ])
+      Result.new(success?: false, suggestion: suggestion, errors: [ I18n.t("suggestions.already_categorized") ])
     end
   end
 end

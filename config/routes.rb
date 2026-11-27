@@ -44,6 +44,7 @@ Rails.application.routes.draw do
       end
       namespace :settings do
         resource :claude, only: %i[show update destroy], controller: "claude"
+        resource :preferences, only: %i[show update]
       end
     end
   end

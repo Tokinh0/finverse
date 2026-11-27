@@ -33,9 +33,9 @@ module Suggestions
         next if confidence < MIN_CONFIDENCE
 
         label = names[subcategory_id] && "#{names[subcategory_id].category.name} / #{names[subcategory_id].name}"
-        reason = "You put #{count} #{'transaction'.pluralize(count)} from this merchant in #{label}"
+        reason = I18n.t("suggestions.history_reason", count: count, label: label)
         note = notes[[ key, subcategory_id ]]
-        reason += " (your note: \"#{note}\")" if note
+        reason += I18n.t("suggestions.note_suffix", note: note) if note
         matches[key] = Match.new(subcategory_id: subcategory_id, confidence: confidence, reason: reason.truncate(250))
       end
     end

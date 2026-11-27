@@ -45,7 +45,15 @@ RSpec.describe Ai::Client do
   end
 
   it 'marks rate limits and outages as retryable but not invalid keys' do
-    expect(described_class::RetryableError.new('rate_limited', '')).to be_retryable
-    expect(described_class::Error.new('invalid_key', '')).not_to be_retryable
+    expect(described_class::RetryableError.new('rate_limited')).to be_retryable
+    expect(described_class::Error.new('invalid_key')).not_to be_retryable
+  end
+
+  it 'writes its messages in the language set in Settings' do
+    stub_claude_models(status: 401, body: claude_error_body('authentication_error'))
+
+    I18n.with_locale(:'pt-BR') do
+      expect { client.verify! }.to raise_error(described_class::Error, /Sua chave de API do Claude foi recusada/)
+    end
   end
 end

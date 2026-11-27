@@ -56,7 +56,7 @@ module MonthlyStatements
       existing = MonthlyStatement.where.not(id: monthly_statement.id).where.not(status: "failed")
                                  .joins(file_attachment: :blob)
                                  .find_by(active_storage_blobs: { checksum: checksum })
-      raise DuplicateStatement, "This file was already imported (statement ##{existing.id})" if existing
+      raise DuplicateStatement, I18n.t("statements.already_imported", id: existing.id) if existing
     end
 
     def ensure_new_transactions!
@@ -77,8 +77,7 @@ module MonthlyStatements
       end
       return if already_imported < rows.size * DUPLICATE_SHARE
 
-      raise DuplicateStatement,
-            "#{already_imported} of #{rows.size} transactions were already imported from another statement"
+      raise DuplicateStatement, I18n.t("statements.transactions_already_imported", count: already_imported, total: rows.size)
     end
 
     def row_key(date, parsed_name, amount)
@@ -87,7 +86,7 @@ module MonthlyStatements
 
     def parser_class
       content_type = monthly_statement.file.content_type
-      PARSERS.fetch(content_type) { raise UnsupportedFileType, "Unsupported file type: #{content_type}" }
+      PARSERS.fetch(content_type) { raise UnsupportedFileType, I18n.t("statements.unsupported_file_type", type: content_type) }
     end
   end
 end

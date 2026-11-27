@@ -4,9 +4,11 @@
 # credentials) and never leaves the API: presenters only expose a masked form.
 class AppSetting < ApplicationRecord
   DEFAULT_CLAUDE_MODEL = "claude-haiku-5-5".freeze
+  LOCALES = %w[en pt-BR].freeze
 
   encrypts :claude_api_key
 
+  validates :locale, inclusion: { in: LOCALES }
   validates :claude_model, format: { with: /\Aclaude-[a-z0-9.-]+\z/ }, allow_blank: true
 
   def self.current

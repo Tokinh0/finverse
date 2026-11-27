@@ -36,7 +36,7 @@ module Rules
 
     def stale(suggestion)
       Result.new(success?: false, suggestion: suggestion, updated_count: 0,
-                 errors: [ "This suggestion was already #{suggestion.status}" ])
+                 errors: [ I18n.t("suggestions.already_decided", status: I18n.t("suggestions.statuses.#{suggestion.status}")) ])
     end
   end
 end

@@ -12,7 +12,7 @@ module Transactions
 
     def call(transaction)
       unless transaction.categorized_by_uncategorized?
-        return Result.new(success?: false, transaction: transaction, errors: [ "Only uncategorized transactions can be marked" ])
+        return Result.new(success?: false, transaction: transaction, errors: [ I18n.t("transactions.only_uncategorized_can_be_marked") ])
       end
 
       Transaction.transaction do

@@ -3,12 +3,14 @@ module Ai
   # `Ai::Error`s with a stable `code` and a message that can be shown in the UI.
   # Messages never include the key.
   class Client
+    # `code` is stable (for the UI and retries); the message comes from config/locales
+    # (ai.errors.<key>, key defaulting to the code) in the current language.
     class Error < StandardError
       attr_reader :code
 
-      def initialize(code, message)
+      def initialize(code, key: code, **params)
         @code = code
-        super(message)
+        super(I18n.t("ai.errors.#{key}", **params))
       end
 
       def retryable?
@@ -27,7 +29,7 @@ module Ai
     MAX_RETRIES = 2
 
     def self.for(setting = AppSetting.current)
-      raise Error.new("not_configured", "No Claude API key is configured.") unless setting.claude_configured?
+      raise Error.new("not_configured") unless setting.claude_configured?
 
       new(api_key: setting.claude_api_key, model: setting.effective_claude_model)
     end
@@ -52,21 +54,21 @@ module Ai
     def translate_errors
       yield
     rescue Anthropic::Errors::AuthenticationError, Anthropic::Errors::PermissionDeniedError
-      raise Error.new("invalid_key", "Your Claude API key was rejected. Update it in Settings.")
+      raise Error.new("invalid_key")
     rescue Anthropic::Errors::RateLimitError
-      raise RetryableError.new("rate_limited", "Claude's rate limit was reached. Suggestions will be retried shortly.")
+      raise RetryableError.new("rate_limited")
     rescue Anthropic::Errors::PaymentRequiredError
-      raise Error.new("billing", "Your Anthropic account has no credit left. Add credit in the Claude Console.")
+      raise Error.new("billing")
     rescue Anthropic::Errors::APITimeoutError, Anthropic::Errors::RequestTimeoutError
-      raise RetryableError.new("timeout", "Claude took too long to answer. Try again later.")
+      raise RetryableError.new("timeout")
     rescue Anthropic::Errors::APIConnectionError
-      raise RetryableError.new("unavailable", "Couldn't reach the Claude API. Check the connection and try again.")
+      raise RetryableError.new("unavailable")
     rescue Anthropic::Errors::InternalServerError
-      raise RetryableError.new("unavailable", "The Claude API is having problems. Suggestions will be retried shortly.")
+      raise RetryableError.new("unavailable", key: "server_error")
     rescue Anthropic::Errors::BadRequestError, Anthropic::Errors::NotFoundError => e
-      raise Error.new("bad_request", "Claude rejected the request (#{e.class.name.demodulize}). Check the model name in Settings.")
+      raise Error.new("bad_request", error: e.class.name.demodulize)
     rescue Anthropic::Errors::APIStatusError => e
-      raise Error.new("api_error", "The Claude API returned an error (HTTP #{e.status}).")
+      raise Error.new("api_error", status: e.status)
     end
   end
 end

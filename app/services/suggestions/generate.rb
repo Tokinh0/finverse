@@ -13,8 +13,9 @@ module Suggestions
   class Generate
     MAX_GROUPS_PER_REQUEST = 150
 
+    # Runs in the language set in Settings, so messages and reasons match the UI.
     def self.call(run)
-      new(run).call
+      I18n.with_locale(AppSetting.current.locale) { new(run).call }
     end
 
     def initialize(run)
@@ -38,7 +39,7 @@ module Suggestions
       fail_run(e.code, e.message)
     rescue StandardError => e
       Rails.logger.error("Suggestion run #{run.id} failed: #{e.class}: #{e.message}")
-      fail_run("internal", "Something went wrong while generating suggestions.")
+      fail_run("internal", I18n.t("suggestions.internal_error"))
     end
 
     private
