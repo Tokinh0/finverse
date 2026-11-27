@@ -66,4 +66,16 @@ RSpec.describe 'Presenters' do
       expect(described_class.new(build(:summary_line, status: 'skipped')).as_json[:parsed_transaction][:name]).to be_nil
     end
   end
+
+  describe TransactionPresenter do
+    it 'serializes the transaction with its subcategory and category' do
+      transaction = create(:transaction, amount: 9.99, transaction_date: Time.zone.parse('2025-04-01 00:00'))
+
+      expect(described_class.new(transaction).as_json).to include(
+        amount: 9.99, transaction_date: '2025-04-01', transaction_type: 'debit',
+        subcategory: a_hash_including(id: transaction.subcategory_id),
+        category: a_hash_including(id: transaction.subcategory.category_id)
+      )
+    end
+  end
 end
