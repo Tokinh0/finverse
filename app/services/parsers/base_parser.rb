@@ -11,7 +11,7 @@ module Parsers
     def create_transaction(entry, raw_content)
       # Always a new record: identical purchases (same day, name and amount) are
       # legitimate separate transactions and must not be merged.
-      transaction = Transaction.new(Categorization.call(entry))
+      transaction = Transaction.new(categorization.call(entry))
       transaction.monthly_statement = monthly_statement
 
       if transaction.save
@@ -26,10 +26,15 @@ module Parsers
           monthly_statement: monthly_statement,
           status: 'failed',
           error: transaction.errors.full_messages.join(', '),
-          parsed_transaction: transaction,
           content: raw_content.to_json
         )
       end
+    end
+
+    # One Categorization per import, so keywords and the fallback subcategory are loaded once
+    # instead of once per row.
+    def categorization
+      @categorization ||= Categorization.new
     end
 
     def create_failed_summary(raw_content, error)

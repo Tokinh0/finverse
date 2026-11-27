@@ -1,8 +1,9 @@
 require 'rails_helper'
 
 RSpec.describe Transaction do
-  it { is_expected.to belong_to(:subcategory).optional }
-  it { is_expected.to belong_to(:monthly_statement).optional }
+  # Both columns are NOT NULL, so the model requires them too.
+  it { is_expected.to belong_to(:subcategory).required }
+  it { is_expected.to belong_to(:monthly_statement).required }
   it { is_expected.to have_one(:summary_line).dependent(:destroy) }
 
   it 'stores the absolute amount rounded to cents' do

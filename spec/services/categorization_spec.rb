@@ -25,4 +25,16 @@ RSpec.describe Categorization do
   it 'infers the type from the keyword lists otherwise' do
     expect(described_class.call(entry.merge(name: 'RECEBIMENTO PIX'))[:transaction_type]).to eq(:credit)
   end
+
+  it 'loads keywords and the fallback once per instance' do
+    create(:keyword, name: 'IFOOD')
+    categorization = described_class.new
+    allow(Keyword).to receive(:all).and_call_original
+    allow(Subcategory).to receive(:other_subcategory).and_call_original
+
+    3.times { categorization.call(entry.merge(name: 'NOTHING MATCHES')) }
+
+    expect(Keyword).to have_received(:all).once
+    expect(Subcategory).to have_received(:other_subcategory).once
+  end
 end

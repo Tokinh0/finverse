@@ -30,4 +30,13 @@ RSpec.describe Parsers::CsvParser do
     expect(statement.transactions.where(name: 'PAG FAT DEB CC')).to be_empty
     expect(statement.summary_lines.skipped.pluck(:error)).to eq(['malformed_row'])
   end
+
+  it 'keeps a failed summary line when a transaction cannot be saved' do
+    allow_any_instance_of(Transaction).to receive(:save).and_return(false)
+
+    described_class.new(statement).call
+
+    expect(statement.summary_lines.failed.count).to eq(2)
+    expect(statement.transactions).to be_empty
+  end
 end

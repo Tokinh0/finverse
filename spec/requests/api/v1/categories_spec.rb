@@ -39,4 +39,13 @@ RSpec.describe 'Api::V1::Categories' do
 
     expect(Subcategory.exists?(subcategory.id)).to be(false)
   end
+
+  it 'refuses to delete the "Outros" fallback' do
+    fallback = create(:category, :other)
+
+    delete "/api/v1/categories/#{fallback.id}"
+
+    expect(response).to have_http_status(:unprocessable_entity)
+    expect(json['errors'].first).to match(/cannot be deleted/)
+  end
 end

@@ -1,31 +1,38 @@
+# Assigns a subcategory and transaction type to a parsed statement entry.
+#
+# Build one instance per import and call it for every row: keywords and the "Outros"
+# fallback subcategory are loaded once, on first use.
 class Categorization
-  def initialize(new_entry)
-    @new_entry = new_entry
+  def self.call(entry)
+    new.call(entry)
   end
 
-  def call
-    match = Matchers::DefaultMatcher.find_best_keyword_match(@new_entry[:name])
-
-    subcategory = match&.subcategory || Subcategory.other_subcategory
+  def call(entry)
+    match = Matchers::DefaultMatcher.find_best_keyword_match(entry[:name], keywords)
+    subcategory_id = match&.subcategory_id || fallback_subcategory.id
 
     {
-      name: @new_entry[:name],
-      amount: @new_entry[:amount],
-      subcategory_id: subcategory.id,
-      transaction_date: @new_entry[:transaction_date],
-      transaction_type: @new_entry[:transaction_type] || infer_transaction_type
+      name: entry[:name],
+      amount: entry[:amount],
+      subcategory_id: subcategory_id,
+      transaction_date: entry[:transaction_date],
+      transaction_type: entry[:transaction_type] || infer_transaction_type(entry)
     }
-  end
-
-  def self.call(entry)
-    new(entry).call
   end
 
   private
 
-  def infer_transaction_type
-    return :debit if @new_entry[:amount] < 0
+  def keywords
+    @keywords ||= Keyword.all.to_a
+  end
 
-    Keywords::TypeInference.call(StringUtils.default_string_parse(@new_entry[:name]))
+  def fallback_subcategory
+    @fallback_subcategory ||= Subcategory.other_subcategory
+  end
+
+  def infer_transaction_type(entry)
+    return :debit if entry[:amount] < 0
+
+    Keywords::TypeInference.call(StringUtils.default_string_parse(entry[:name]))
   end
 end

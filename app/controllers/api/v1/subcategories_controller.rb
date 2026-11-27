@@ -30,7 +30,11 @@ module Api::V1
     end
 
     def destroy
-      @subcategory.destroy!
+      if @subcategory.destroy
+        head :no_content
+      else
+        render json: { errors: @subcategory.errors.full_messages }, status: :unprocessable_entity
+      end
     end
 
     private

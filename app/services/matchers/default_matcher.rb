@@ -7,9 +7,13 @@ module Matchers
         match_score(parsed_name, parsed_keyword)
       end
 
-      def find_best_keyword_match(word)
+      # @param keywords [Enumerable<Keyword>] pass a preloaded list when matching many names
+      def find_best_keyword_match(word, keywords = Keyword.all)
         parsed_name = StringUtils.default_string_parse(word)
-        Keyword.all.map { |kw| [kw, match_score(parsed_name, kw.parsed_name)] }.select { |_, score| score > 0 }.max_by { |_, score| score }&.first
+        keywords.map { |kw| [kw, match_score(parsed_name, kw.parsed_name)] }
+                .select { |_, score| score.positive? }
+                .max_by { |_, score| score }
+                &.first
       end
     
       def match_score(input, keyword)

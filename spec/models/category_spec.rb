@@ -29,4 +29,21 @@ RSpec.describe Category do
       expect(described_class.other_category).to eq(other)
     end
   end
+
+  describe 'destroy' do
+    it 'moves the transactions of its subcategories to the fallback' do
+      fallback = create(:subcategory, :other)
+      transaction = create(:transaction, subcategory: create(:subcategory, name: 'Cinema'))
+
+      expect(transaction.subcategory.category.destroy).to be_truthy
+      expect(transaction.reload.subcategory).to eq(fallback)
+    end
+
+    it 'refuses to delete the "Outros" fallback category' do
+      category = create(:category, :other)
+
+      expect(category.destroy).to be(false)
+      expect(category.errors[:base]).to include(/cannot be deleted/)
+    end
+  end
 end

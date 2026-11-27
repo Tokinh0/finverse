@@ -1,8 +1,8 @@
 class Transaction < ApplicationRecord
   include Normalizer
 
-  belongs_to :subcategory, optional: true
-  belongs_to :monthly_statement, optional: true
+  belongs_to :subcategory
+  belongs_to :monthly_statement
   has_one :summary_line, foreign_key: :parsed_transaction_id, dependent: :destroy
 
   enum transaction_type: { credit: 'credit', debit: 'debit', unknown: 'unknown' }
