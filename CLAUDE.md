@@ -52,6 +52,10 @@ Controllers in `app/controllers/api/v1/` stay thin. They permit params, call a m
 
 **Name normalization:** models that include `Normalizer` (Category, Subcategory, Keyword, Transaction) derive `parsed_name` from every `name=` assignment via `StringUtils.default_string_parse` (stripped, upcased, whitespace replaced by `_`). Uniqueness validations, matching and seeding all compare `parsed_name`. `StringUtils` is not mixed in globally, so call `StringUtils.default_string_parse` from service and class-level code.
 
+**Transaction review:** `Transactions::Search` backs `GET /transactions` (filters: `month`, `category_id`, `subcategory_id`, `transaction_type`, `q`; paginated; `meta.months` lists the months that have data). `Transactions::Recategorize` backs `PATCH /transactions/:id`. It changes the subcategory or type, can create a keyword for the new subcategory, and with `apply_to_matching` moves other transactions for which that keyword is now the best match.
+
+**Deletes keep transactions:** deleting a subcategory, or a category through its subcategories, moves the transactions to the Outros fallback (`before_destroy`). The fallback category and subcategory can't be deleted, and the API responds 422.
+
 **Other services:** `Reports::MonthlyByCategory` / `Reports::MonthlyBySubcategory` (the report endpoints), `Portfolio::Dashboard` (assets plus allocation by `asset_type`; it passes per-type totals into `AssetPresenter` to avoid N+1 queries), and `Assets::CryptoPriceUpdater` + `CriptomoedasPriceService` (crypto prices from CoinGecko, with CoinCap as a fallback; not wired to an endpoint yet).
 
 **Asset types:** `Asset::ASSET_TYPES` maps enum keys to the Portuguese labels stored in the DB (`enum asset_type: ASSET_TYPES`). The API sends the keys, and `portfolio_dashboard` also returns the map so the client can show the labels.
