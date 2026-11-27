@@ -95,4 +95,33 @@ RSpec.describe Suggestions::Generate do
 
     expect(stub).not_to have_been_requested
   end
+
+  it 'saves rule suggestions from the same Claude request, skipping useless ones' do
+    with_key
+    uncategorized('MERCADO LUA 1')
+    uncategorized('MERCADO LUA 2')
+    stub = stub_claude_message({ category_suggestions: [], rule_suggestions: [
+      { action: 'create', keyword_id: nil, keyword: 'MERCADO LUA', subcategory_id: market.id, confidence: 0.85, reason: 'Recurs' },
+      { action: 'create', keyword_id: nil, keyword: 'NADA DISSO', subcategory_id: market.id, confidence: 0.85, reason: 'No match' }
+    ] })
+
+    described_class.call(run)
+
+    expect(stub).to have_been_requested.once
+    expect(RuleSuggestion.sole).to have_attributes(origin: 'ai', parsed_name: 'MERCADO_LUA', subcategory: market, suggestion_run: run)
+    expect(run.reload.rule_suggestions_count).to eq(1)
+  end
+
+  it 'makes local rule suggestions even without a key' do
+    3.times do |i|
+      transaction = create(:transaction, name: "TAXI AMIGO #{i}", subcategory: market, categorization_source: 'manual')
+      create(:categorization_event, parsed_transaction: transaction, to_subcategory: market)
+    end
+    uncategorized('NOVO')
+
+    described_class.call(run)
+
+    expect(RuleSuggestion.sole).to have_attributes(origin: 'local', parsed_name: 'TAXI_AMIGO')
+    expect(run.reload.rule_suggestions_count).to eq(1)
+  end
 end

@@ -31,4 +31,37 @@ RSpec.describe Ai::ResponseValidator do
   it 'returns nothing for an answer of the wrong shape' do
     expect(described_class.call([], item_ids: [ 1 ], subcategory_ids: [ 1 ]).category_suggestions).to eq([])
   end
+
+  describe 'rule suggestions' do
+    def rules(entries)
+      described_class.call({ 'category_suggestions' => [], 'rule_suggestions' => entries },
+                           item_ids: [], subcategory_ids: [ 10, 11 ], keyword_ids: [ 5 ]).rule_suggestions
+    end
+
+    it 'keeps well-formed creates, updates and deletes' do
+      result = rules([
+        { 'action' => 'create', 'keyword_id' => nil, 'keyword' => 'UBER TRIP', 'subcategory_id' => 10, 'confidence' => 0.9, 'reason' => 'x' },
+        { 'action' => 'update', 'keyword_id' => 5, 'keyword' => nil, 'subcategory_id' => 11, 'confidence' => 0.7, 'reason' => 'y' },
+        { 'action' => 'delete', 'keyword_id' => 5, 'keyword' => nil, 'subcategory_id' => nil, 'confidence' => 0.6, 'reason' => 'z' }
+      ])
+
+      expect(result).to eq([
+        { action: 'create', keyword_id: nil, keyword: 'UBER TRIP', subcategory_id: 10, confidence: 0.9, reason: 'x' },
+        { action: 'update', keyword_id: 5, keyword: nil, subcategory_id: 11, confidence: 0.7, reason: 'y' },
+        { action: 'delete', keyword_id: 5, keyword: nil, subcategory_id: nil, confidence: 0.6, reason: 'z' }
+      ])
+    end
+
+    it 'drops unknown actions, rules and subcategories, empty keywords and bad confidences' do
+      expect(rules([
+        { 'action' => 'merge', 'keyword_id' => 5, 'keyword' => 'X', 'subcategory_id' => 10, 'confidence' => 0.9 },
+        { 'action' => 'create', 'keyword' => '', 'subcategory_id' => 10, 'confidence' => 0.9 },
+        { 'action' => 'create', 'keyword' => 'UBER', 'subcategory_id' => 99, 'confidence' => 0.9 },
+        { 'action' => 'update', 'keyword_id' => 6, 'keyword' => 'X', 'subcategory_id' => 10, 'confidence' => 0.9 },
+        { 'action' => 'update', 'keyword_id' => 5, 'keyword' => nil, 'subcategory_id' => nil, 'confidence' => 0.9 },
+        { 'action' => 'delete', 'keyword_id' => 7, 'confidence' => 0.9 },
+        { 'action' => 'create', 'keyword' => 'UBER', 'subcategory_id' => 10, 'confidence' => 2 }
+      ])).to eq([])
+    end
+  end
 end

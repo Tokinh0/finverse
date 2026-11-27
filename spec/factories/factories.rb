@@ -66,4 +66,21 @@ FactoryBot.define do
     confidence { 0.8 }
     status { 'pending' }
   end
+
+  factory :categorization_event do
+    association :parsed_transaction, factory: :transaction
+    from_source { 'keyword' }
+    to_source { 'manual' }
+    merchant_key { Transactions::Merchant.key(parsed_transaction) }
+    to_subcategory { parsed_transaction.subcategory }
+  end
+
+  factory :rule_suggestion do
+    action { 'create' }
+    sequence(:name) { |n| "RULE #{n}" }
+    subcategory
+    origin { 'ai' }
+    confidence { 0.8 }
+    status { 'pending' }
+  end
 end

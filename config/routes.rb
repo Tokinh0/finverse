@@ -9,6 +9,7 @@ Rails.application.routes.draw do
           delete :dismiss, action: :restore
         end
       end
+      get "keywords/health", to: "keyword_health#index"
       resources :keywords
       resources :monthly_statements, only: %i[index show create destroy]
       resources :subcategories
@@ -17,10 +18,17 @@ Rails.application.routes.draw do
         get :monthly_by_category
         get :monthly_by_subcategory
         get :financial_health
+        get :categorization_progress
       end
       get :portfolio_dashboard, to: "portfolio_dashboard#index"
       get "suggestions/summary", to: "suggestions#summary"
       resources :suggestion_runs, only: %i[index create]
+      resources :rule_suggestions, only: :index do
+        member do
+          post :accept
+          post :reject
+        end
+      end
       resources :category_suggestions, only: :index do
         member do
           post :accept

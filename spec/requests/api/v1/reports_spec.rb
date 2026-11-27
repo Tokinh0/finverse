@@ -22,4 +22,23 @@ RSpec.describe 'Api::V1::Reports' do
     expect(json).to include("as_of" => "2025-03", "period_months" => 1)
     expect(json.keys).to include("summary", "categories", "trends", "year")
   end
+
+  describe 'GET /reports/categorization_progress' do
+    it 'counts transactions per month by how they were categorized' do
+      create(:transaction, transaction_date: Date.new(2031, 2, 3), categorization_source: 'keyword')
+      create(:transaction, transaction_date: Date.new(2031, 3, 3), categorization_source: 'keyword')
+      create(:transaction, transaction_date: Date.new(2031, 3, 9), categorization_source: 'manual')
+      create(:transaction, transaction_date: Date.new(2031, 3, 9), categorization_source: 'ai_accepted')
+      create(:transaction, transaction_date: Date.new(2031, 3, 9), categorization_source: 'uncategorized')
+
+      get '/api/v1/reports/categorization_progress', params: { months: 2 }
+
+      expect(json).to eq([
+        { 'month' => '2031-02', 'total' => 1, 'keyword_share' => 1.0,
+          'counts' => { 'keyword' => 1, 'ai_accepted' => 0, 'manual' => 0, 'uncategorized' => 0 } },
+        { 'month' => '2031-03', 'total' => 4, 'keyword_share' => 0.25,
+          'counts' => { 'keyword' => 1, 'ai_accepted' => 1, 'manual' => 1, 'uncategorized' => 1 } }
+      ])
+    end
+  end
 end

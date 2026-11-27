@@ -20,10 +20,12 @@ module Api::V1
       result = Transactions::Recategorize.call(Transaction.find(params[:id]), **recategorize_params)
 
       if result.success?
+        nudge = Rules::LocalSuggester.nudge_for(result.transaction) if result.transaction.categorized_by_manual? && !result.keyword
         render json: {
           transaction: TransactionPresenter.new(result.transaction.reload),
           keyword: result.keyword && KeywordPresenter.new(result.keyword),
-          updated_count: result.updated_count
+          updated_count: result.updated_count,
+          rule_nudge: nudge && RuleSuggestionPresenter.new(nudge, subcategories: Subcategory.includes(:category).index_by(&:id))
         }
       else
         render json: { errors: result.errors }, status: :unprocessable_content

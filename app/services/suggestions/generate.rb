@@ -4,7 +4,9 @@ module Suggestions
   #
   # 1. Merchants the owner already categorized get a "history" suggestion. No API call.
   # 2. The rest go to Claude, if a key is saved, in as few requests as possible (one per
-  #    MAX_GROUPS_PER_REQUEST merchants; one per import in practice).
+  #    MAX_GROUPS_PER_REQUEST merchants; one per import in practice). The same request also
+  #    returns keyword rule suggestions.
+  # 3. Local rule suggestions (repeated corrections, overridden rules) always run.
   #
   # Suggestions are saved per batch, so a retry after a failure skips what was already done.
   # Retryable Claude errors are re-raised for the job to retry; others mark the run failed.
@@ -26,6 +28,7 @@ module Suggestions
       rejected = Rejections.by_merchant(groups.map(&:merchant_key))
       remaining = suggest_from_history(groups)
       suggest_with_claude(remaining, rejected) if remaining.any? && setting.claude_configured?
+      run.rule_suggestions_count += Rules::LocalSuggester.call(run: run).count { _1.suggestion_run_id == run.id }
 
       run.update!(status: "succeeded", finished_at: Time.current)
     rescue Ai::Client::RetryableError => e
@@ -61,7 +64,7 @@ module Suggestions
     def suggest_with_claude(groups, rejected)
       client = Ai::Client.for(setting)
       run.update!(model: client.model)
-      suggester = Ai::CategorySuggester.new(client)
+      suggester = Ai::Suggester.new(client)
 
       groups.each_slice(MAX_GROUPS_PER_REQUEST) do |batch|
         result = suggester.call(batch, rejected: rejected)
@@ -70,6 +73,7 @@ module Suggestions
                                  confidence: suggestion.confidence, reason: suggestion.reason)
           run.ai_suggestions_count += suggestion.group.transactions.size
         end
+        result.rule_suggestions.each { save_rule(_1) }
         run.ai_groups_sent += batch.size
         run.ai_requests_count += 1
         run.input_tokens += result.input_tokens
@@ -87,6 +91,13 @@ module Suggestions
           )
         end
       end
+    end
+
+    def save_rule(suggestion)
+      change = Rules::Change.new(action: suggestion[:action], keyword: suggestion[:keyword_id] && Keyword.find_by(id: suggestion[:keyword_id]),
+                                 name: suggestion[:keyword], subcategory_id: suggestion[:subcategory_id])
+      saved = Rules::SuggestionWriter.call(change, origin: "ai", run: run, confidence: suggestion[:confidence], reason: suggestion[:reason])
+      run.rule_suggestions_count += 1 if saved&.suggestion_run_id == run.id
     end
 
     def fail_run(code, message)

@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe Ai::CategorySuggester do
+RSpec.describe Ai::Suggester do
   let!(:fallback) { create(:subcategory, :other) }
   let(:bakery) { create(:subcategory, name: 'Padaria') }
   let(:client) { Ai::Client.new(api_key: 'sk-ant-test', model: 'claude-haiku-5-5', max_retries: 0) }
@@ -10,7 +10,10 @@ RSpec.describe Ai::CategorySuggester do
   end
 
   it 'asks for structured JSON in one request and maps the answer back to the groups' do
-    stub_claude_message({ category_suggestions: [ { item_id: 1, subcategory_id: bakery.id, confidence: 0.9, reason: 'Bakery' } ] })
+    stub_claude_message({
+      category_suggestions: [ { item_id: 1, subcategory_id: bakery.id, confidence: 0.9, reason: 'Bakery' } ],
+      rule_suggestions: [ { action: 'create', keyword_id: nil, keyword: 'PADARIA', subcategory_id: bakery.id, confidence: 0.8, reason: 'Recurs' } ]
+    })
 
     result = described_class.new(client).call([ group ])
 
@@ -20,6 +23,9 @@ RSpec.describe Ai::CategorySuggester do
     expect(body['system']).to include('categorize bank transactions')
     expect(JSON.parse(body['messages'].first['content'])['items'].first).to include('id' => 1, 'name' => 'PADARIA SOL')
     expect(result.suggestions.sole).to have_attributes(group: group, subcategory_id: bakery.id, confidence: 0.9, reason: 'Bakery')
+    expect(result.rule_suggestions).to eq([ { action: 'create', keyword_id: nil, keyword: 'PADARIA', subcategory_id: bakery.id,
+                                               confidence: 0.8, reason: 'Recurs' } ])
+    expect(body['output_config']['format']['schema']['required']).to eq(%w[category_suggestions rule_suggestions])
     expect(result).to have_attributes(dropped: 0, input_tokens: 120, output_tokens: 40)
   end
 

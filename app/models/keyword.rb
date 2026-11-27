@@ -3,6 +3,7 @@ class Keyword < ApplicationRecord
 
   belongs_to :subcategory
   has_many :transactions, dependent: :nullify
+  has_many :rule_suggestions, dependent: :delete_all
 
   validates :name, presence: true
   validates :parsed_name, uniqueness: { scope: :subcategory_id }

@@ -40,5 +40,26 @@ RSpec.describe 'Api::V1::Transactions' do
       expect(response).to have_http_status(:unprocessable_content)
       expect(json['errors']).to include('Subcategory must exist')
     end
+
+    it 'nudges the owner to create a rule after a few manual fixes of the same merchant' do
+      2.times do
+        earlier = create(:transaction, name: 'TAXI AMIGO', subcategory: food, categorization_source: 'manual')
+        create(:categorization_event, parsed_transaction: earlier, to_subcategory: food)
+      end
+      third = create(:transaction, name: 'TAXI AMIGO', subcategory: fallback, categorization_source: 'uncategorized')
+
+      patch "/api/v1/transactions/#{third.id}", params: { transaction: { subcategory_id: food.id } }, as: :json
+
+      expect(json['rule_nudge']).to include('action' => 'create', 'origin' => 'local',
+                                            'proposed' => a_hash_including('name' => 'TAXI AMIGO'))
+    end
+
+    it 'sends no nudge for a first fix' do
+      transaction = create(:transaction, name: 'TAXI AMIGO', subcategory: fallback)
+
+      patch "/api/v1/transactions/#{transaction.id}", params: { transaction: { subcategory_id: food.id } }, as: :json
+
+      expect(json['rule_nudge']).to be_nil
+    end
   end
 end

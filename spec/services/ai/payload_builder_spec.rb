@@ -13,13 +13,14 @@ RSpec.describe Ai::PayloadBuilder do
   end
 
   it 'sends subcategories (without the fallback), rules and compact, scrubbed items' do
-    create(:keyword, name: 'PADARIA', subcategory: bakery)
+    rule = create(:keyword, name: 'PADARIA', subcategory: bakery)
     groups = [ group('PIX 123.456.789-09 PADARIA SOL', 'PIX 123.456.789-09 PADARIA SOL') ]
 
     built = described_class.new(groups, rejected: { groups.first.merchant_key => [ bakery.id ] }).call
 
     expect(built[:payload][:subcategories]).to eq([ { id: bakery.id, name: 'Alimentação / Padaria', type: 'expense' } ])
-    expect(built[:payload][:rules]).to eq([ [ 'PADARIA', bakery.id ] ])
+    expect(built[:payload][:rules]).to eq([ [ rule.id, 'PADARIA', bakery.id ] ])
+    expect(built[:payload][:rule_issues]).to eq([])
     expect(built[:payload][:items]).to eq([
       { id: 1, name: 'PIX # PADARIA SOL', count: 2, avg_amount: 10.0, type: 'debit', statement: 'checking_account', not: [ bakery.id ] }
     ])
@@ -40,5 +41,21 @@ RSpec.describe Ai::PayloadBuilder do
 
   it 'omits `not` when nothing was rejected' do
     expect(described_class.new([ group('MERCADO') ]).call[:payload][:items].first).not_to have_key(:not)
+  end
+
+  it 'adds rule problems, repeated corrections and rejected rule changes' do
+    overridden = create(:keyword, name: 'SOL', subcategory: bakery)
+    market = create(:subcategory, name: 'Mercado')
+    3.times do
+      transaction = create(:transaction, name: 'SOL', subcategory: market, categorization_source: 'manual')
+      create(:categorization_event, parsed_transaction: transaction, overridden_keyword: overridden, to_subcategory: market)
+    end
+    create(:rule_suggestion, action: 'create', name: 'LUA', subcategory: market, status: 'rejected', decided_at: Time.current)
+
+    payload = described_class.new([ group('MERCADO') ]).call[:payload]
+
+    expect(payload[:rule_issues]).to eq([ [ overridden.id, 0, 3, market.id, 'overridden' ] ])
+    expect(payload[:corrections]).to eq([ [ 'SOL', market.id, 3 ] ])
+    expect(payload[:rejected_rules]).to eq([ [ 'create', 'LUA', market.id ] ])
   end
 end

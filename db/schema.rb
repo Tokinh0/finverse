@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_11_27_170000) do
+ActiveRecord::Schema[7.1].define(version: 2026_11_27_190000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -135,6 +135,28 @@ ActiveRecord::Schema[7.1].define(version: 2026_11_27_170000) do
     t.string "statement_kind"
   end
 
+  create_table "rule_suggestions", force: :cascade do |t|
+    t.string "action", null: false
+    t.bigint "keyword_id"
+    t.string "name"
+    t.string "parsed_name"
+    t.bigint "subcategory_id"
+    t.bigint "suggestion_run_id"
+    t.string "origin", null: false
+    t.decimal "confidence", precision: 3, scale: 2, null: false
+    t.string "reason"
+    t.string "status", default: "pending", null: false
+    t.string "fingerprint", null: false
+    t.integer "match_count_at_decision"
+    t.datetime "decided_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["fingerprint", "status"], name: "index_rule_suggestions_on_fingerprint_and_status"
+    t.index ["keyword_id"], name: "index_rule_suggestions_on_keyword_id"
+    t.index ["subcategory_id"], name: "index_rule_suggestions_on_subcategory_id"
+    t.index ["suggestion_run_id"], name: "index_rule_suggestions_on_suggestion_run_id"
+  end
+
   create_table "subcategories", force: :cascade do |t|
     t.string "name"
     t.string "parsed_name"
@@ -162,6 +184,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_11_27_170000) do
     t.datetime "finished_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "rule_suggestions_count", default: 0, null: false
     t.index ["monthly_statement_id"], name: "index_suggestion_runs_on_monthly_statement_id"
   end
 
@@ -207,6 +230,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_11_27_170000) do
   add_foreign_key "category_suggestions", "suggestion_runs", on_delete: :nullify
   add_foreign_key "category_suggestions", "transactions", column: "parsed_transaction_id", on_delete: :cascade
   add_foreign_key "keywords", "subcategories"
+  add_foreign_key "rule_suggestions", "keywords", on_delete: :cascade
+  add_foreign_key "rule_suggestions", "subcategories", on_delete: :cascade
+  add_foreign_key "rule_suggestions", "suggestion_runs", on_delete: :nullify
   add_foreign_key "subcategories", "categories"
   add_foreign_key "suggestion_runs", "monthly_statements", on_delete: :nullify
   add_foreign_key "summary_lines", "monthly_statements"

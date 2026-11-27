@@ -1,12 +1,14 @@
 module Ai
   # Builds the compact JSON sent to Claude for one batch of merchant groups.
   #
-  # Only what the decision needs goes out: the owner's subcategories, keyword rules, a few past
-  # examples similar to the batch, and per merchant its scrubbed name, count, average amount,
-  # type and statement kind. No ids beyond our own short item numbers, no dates, no totals.
+  # Only what the decisions need goes out: the owner's subcategories, keyword rules (with stats
+  # only for rules that have problems), a few past examples similar to the batch, repeated
+  # manual corrections, recently rejected rule changes, and per merchant its scrubbed name,
+  # count, average amount, type and statement kind. No dates, no totals, no account numbers.
   class PayloadBuilder
     MAX_EXAMPLES_PER_ITEM = 2
     MAX_EXAMPLES = 40
+    MAX_CORRECTIONS = 30
     EXAMPLE_SOURCES = %w[manual ai_accepted keyword].freeze
     # Tokens too common in bank descriptions to say anything about the merchant.
     GENERIC_TOKENS = %w[
@@ -26,8 +28,11 @@ module Ai
       items = groups.each_with_index.to_h { |group, index| [ index + 1, group ] }
       payload = {
         subcategories: subcategories,
-        rules: Keyword.where(subcategory_id: allowed_subcategory_ids).order(:parsed_name).pluck(:parsed_name, :subcategory_id),
+        rules: Keyword.order(:parsed_name).pluck(:id, :parsed_name, :subcategory_id),
+        rule_issues: rule_issues,
         examples: examples,
+        corrections: corrections,
+        rejected_rules: Rules::Rejections.recent,
         items: items.map { |id, group| item(id, group) }
       }
       { payload: payload, items: items }
@@ -45,6 +50,29 @@ module Ai
       Subcategory.includes(:category).where(id: allowed_subcategory_ids).order(:id).map do |subcategory|
         { id: subcategory.id, name: "#{subcategory.category.name} / #{subcategory.name}", type: subcategory.subcategory_type }
       end
+    end
+
+    # [rule id, matches, overrides, subcategory the owner moved them to most, flags], only for
+    # rules that are overridden or overlap. Unused rules are left out: they cost tokens and do
+    # no harm.
+    ISSUE_FLAGS = %w[overridden overlapping].freeze
+
+    def rule_issues
+      Rules::Health.call.values.filter_map do |entry|
+        flags = entry.flags & ISSUE_FLAGS
+        next if flags.empty?
+
+        [ entry.keyword.id, entry.matches, entry.overrides, entry.top_override_subcategory_id, flags.join(",") ]
+      end
+    end
+
+    # Merchants the owner put in the same subcategory by hand more than once:
+    # [merchant, subcategory id, times]. A strong signal for a new rule.
+    def corrections
+      CategorizationEvent.where(to_source: %w[manual ai_accepted], to_subcategory_id: allowed_subcategory_ids)
+                         .group(:merchant_key, :to_subcategory_id).having("COUNT(*) >= 2")
+                         .order(Arel.sql("COUNT(*) DESC")).limit(MAX_CORRECTIONS).count
+                         .map { |(key, subcategory_id), count| [ Suggestions::Privacy.scrub(key), subcategory_id, count ] }
     end
 
     def item(id, group)
