@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_11_28_020000) do
+ActiveRecord::Schema[7.1].define(version: 2026_11_28_060000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -67,6 +67,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_11_28_020000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "account_id"
+    t.text "brapi_token"
     t.index ["account_id"], name: "index_app_settings_on_account_id", unique: true
   end
 
@@ -80,7 +81,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_11_28_020000) do
     t.string "color_code"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.decimal "last_uploaded_unit_value", precision: 10, scale: 2
+    t.decimal "last_uploaded_unit_value", precision: 20, scale: 8
     t.bigint "profile_id", null: false
     t.index ["profile_id"], name: "index_assets_on_profile_id"
   end
