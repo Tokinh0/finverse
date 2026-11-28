@@ -1,4 +1,5 @@
 class Transaction < ApplicationRecord
+  include ProfileOwned
   include Normalizer
 
   belongs_to :subcategory

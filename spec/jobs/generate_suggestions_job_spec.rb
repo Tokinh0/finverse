@@ -26,4 +26,16 @@ RSpec.describe GenerateSuggestionsJob do
 
     expect { described_class.perform_now(run.id) }.to have_enqueued_job(described_class).with(run.id)
   end
+
+  it "works as the run's profile, whoever is current when it runs" do
+    other = create(:profile, locale: 'pt-BR')
+    their_run = as_profile(other) { create(:suggestion_run) }
+    seen = nil
+    allow(Suggestions::Generate).to receive(:call) { seen = [ Current.profile, SuggestionRun.all.to_a ] }
+
+    Current.profile = nil
+    described_class.perform_now(their_run.id)
+
+    expect(seen).to eq([ other, [ their_run ] ])
+  end
 end

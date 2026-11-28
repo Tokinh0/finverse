@@ -1,5 +1,6 @@
 # One pass of the suggestion pipeline (Suggestions::Generate), after an import or on request.
 class SuggestionRun < ApplicationRecord
+  include ProfileOwned
   belongs_to :monthly_statement, optional: true
   has_many :category_suggestions, dependent: :nullify
   has_many :rule_suggestions, dependent: :nullify

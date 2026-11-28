@@ -1,0 +1,103 @@
+// Starting data for every new profile (db/seeds.rb, POST /profiles) and the keyword lists that
+// Keywords::TypeInference uses to tell debits from credits. This file is committed and the repo
+// is public: keep it generic. No personal names, CPFs/CNPJs, PIX keys or local businesses.
+//
+// categories[].subcategories[].type is one of gain, expense, investment, transfer, other.
+{
+  "categories": [
+    {
+      "name": "Ganhos",
+      "color_code": "#D4EFDF",
+      "subcategories": [
+        { "name": "SALARIO", "type": "gain", "color_code": "#A9DFBF", "keywords": ["SALARIO", "LIBERACAO_CAMBIO"] },
+        { "name": "TRANSFERENCIAS", "type": "transfer", "color_code": "#7DCEA0", "keywords": ["TRANSFERENCIA_DA_POUPANCA"] },
+        { "name": "OUTROS", "type": "gain", "color_code": "#52BE80", "keywords": ["DISTRIBUICAO", "RECEBIMENTO"] }
+      ]
+    },
+    {
+      "name": "Investimento",
+      "color_code": "#D4EFDF",
+      "subcategories": [
+        { "name": "POUPANCA", "type": "investment", "color_code": "#A9DFBF", "keywords": ["APLICACAO"] },
+        { "name": "TRANSFERENCIA", "type": "transfer", "color_code": "#7DCEA0", "keywords": [] }
+      ]
+    },
+    {
+      "name": "Conforto",
+      "color_code": "#1B2631",
+      "subcategories": [
+        { "name": "FOOD", "type": "expense", "color_code": "#154360", "keywords": ["IFOOD", "IFD", "PANIFICADORA", "MC_DONALDS", "PIZZA"] },
+        { "name": "UBER", "type": "expense", "color_code": "#1C2833", "keywords": ["UBER"] },
+        {
+          "name": "ASSINATURA",
+          "type": "expense",
+          "color_code": "#641E16",
+          "keywords": ["NETFLIX", "SPOTIFY", "AMAZON_PRIME", "AMAZONPRIME", "DISNEY", "APPLE", "VIACOM", "MELIMAIS", "PARAMOUNT"]
+        }
+      ]
+    },
+    {
+      "name": "Esporádicas",
+      "color_code": "#1B2631",
+      "subcategories": [
+        { "name": "BEM_ESTAR", "type": "expense", "color_code": "#154360", "keywords": ["DROGASIL", "FARMACIA"] },
+        { "name": "CASA", "type": "expense", "color_code": "#641E16", "keywords": [] },
+        { "name": "ALEATORIO", "type": "expense", "color_code": "#cccccc", "keywords": [] },
+        { "name": "CARRO", "type": "expense", "color_code": "#cccccc", "keywords": [] },
+        { "name": "TAXAS", "type": "expense", "color_code": "#cccccc", "keywords": [] }
+      ]
+    },
+    {
+      "name": "Contas Fixas",
+      "color_code": "#1B2631",
+      "subcategories": [
+        { "name": "CONTAS", "type": "expense", "color_code": "#154360", "keywords": ["SEG_VIDA"] },
+        {
+          "name": "TAXAS",
+          "type": "expense",
+          "color_code": "#1C2833",
+          "keywords": ["TAXA", "ANUIDADE_CARTAO", "ANUIDADE", "TARIFA", "IOF", "DEBITO_DE_CAMBIO", "CESTA_DE", "MENSALID_TAG_DE_PASSAGEM", "INTEGR.CAPITAL_SUBSCRITO"]
+        },
+        { "name": "IMPOSTOS", "type": "expense", "color_code": "#641E16", "keywords": ["DEPARTAMENTO_ESTADU", "MINISTERIO_DA_FAZEN", "RECEITA_FEDERAL"] },
+        { "name": "CARRO", "type": "expense", "color_code": "#78281F", "keywords": ["POSTO", "CENTRO_AUTOMOTIVO", "AUTOMOTIVO", "PEDAGIO", "ESTACIONAMENTO"] },
+        { "name": "MERCADO", "type": "expense", "color_code": "#424949", "keywords": ["SUPERMERCADO"] },
+        { "name": "BEM_ESTAR", "type": "expense", "color_code": "#512E5F", "keywords": ["SACOLAO", "HORTIFRUTI"] },
+        { "name": "ASSINATURA", "type": "expense", "color_code": "#2E4053", "keywords": ["GPT"] }
+      ]
+    },
+    {
+      "name": "Lazer",
+      "color_code": "#1B2631",
+      "subcategories": [
+        { "name": "ALCOOL", "type": "expense", "color_code": "#154360", "keywords": ["DISTRIBUIDORA", "BEBIDA", "TABACARIA", "BAR", "RESTAURAN"] },
+        { "name": "COMPRAS", "type": "expense", "color_code": "#1C2833", "keywords": ["MERCADOLIVRE", "GAMES", "TIKTOK_SHOP"] },
+        { "name": "VIAGEMS", "type": "expense", "color_code": "#641E16", "keywords": ["HOTEL"] },
+        { "name": "OUTROS", "type": "expense", "color_code": "#78281F", "keywords": ["LOTERIAS"] },
+        { "name": "COMIDAS GOSTOSINHAS", "type": "expense", "color_code": "#cccccc", "keywords": [] },
+        { "name": "DIVERSÃO/JOGOS", "type": "expense", "color_code": "#cccccc", "keywords": [] }
+      ]
+    },
+    {
+      // The fallback for transactions no rule matches. Imports need it, and it can't be deleted.
+      "name": "Outros",
+      "color_code": "#1B2631",
+      "subcategories": [{ "name": "OUTROS", "type": "expense", "color_code": "#154360", "keywords": ["OUTROS"] }]
+    }
+  ],
+  "debit_keywords": [
+    "COMPRA",
+    "PAGAMENTO",
+    "BOLETO",
+    "DEBITO",
+    "CAPITAL_SUBSCRITO",
+    "IOF",
+    "MERCADO",
+    "CESTA_DE",
+    "APLICACAO",
+    "PASSAGEM_PEDAGIO",
+    "MENSALID",
+    "PASSAGEM_ESTACIONAMENTO"
+  ],
+  "credit_keywords": ["LIBERACAO_CAMBIO", "TRANSFERENCIA_DA_POUPANCA", "RECEBIMENTO", "DISTRIBUICAO"],
+  "ignored_keywords": ["PAGTO_FATURA", "PAG_FAT_DEB_CC"]
+}

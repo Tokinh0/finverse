@@ -1,18 +1,20 @@
-# The single row of app-wide settings. Use `AppSetting.current`.
+# The settings an account's profiles share (the Claude key and model). Use `AppSetting.current`
+# for the current profile's account. Each profile's language lives on Profile.
 #
 # The Claude API key is encrypted at rest (Active Record Encryption, keys in the Rails
 # credentials) and never leaves the API: presenters only expose a masked form.
 class AppSetting < ApplicationRecord
   DEFAULT_CLAUDE_MODEL = "claude-haiku-5-5".freeze
-  LOCALES = %w[en pt-BR].freeze
+
+  belongs_to :account
 
   encrypts :claude_api_key
 
-  validates :locale, inclusion: { in: LOCALES }
   validates :claude_model, format: { with: /\Aclaude-[a-z0-9.-]+\z/ }, allow_blank: true
 
   def self.current
-    first_or_create!
+    account = Current.account || raise(ProfileOwned::MissingProfile)
+    find_or_create_by!(account: account)
   end
 
   def claude_configured?

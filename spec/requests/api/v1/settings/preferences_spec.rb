@@ -1,13 +1,13 @@
 require 'rails_helper'
 
 RSpec.describe 'Api::V1::Settings::Preferences' do
-  it 'reads and changes the language' do
+  it "reads and changes the signed-in profile's language" do
     get '/api/v1/settings/preferences'
     expect(json).to eq('locale' => 'en', 'available_locales' => %w[en pt-BR])
 
     put '/api/v1/settings/preferences', params: { preferences: { locale: 'pt-BR' } }
     expect(json['locale']).to eq('pt-BR')
-    expect(AppSetting.current.locale).to eq('pt-BR')
+    expect(current_profile.reload.locale).to eq('pt-BR')
   end
 
   it 'rejects unknown languages' do
@@ -17,11 +17,19 @@ RSpec.describe 'Api::V1::Settings::Preferences' do
   end
 
   it 'answers in the chosen language' do
-    AppSetting.current.update!(locale: 'pt-BR')
+    current_profile.update!(locale: 'pt-BR')
     create(:subcategory, :other)
 
     post '/api/v1/suggestion_runs'
 
     expect(json['errors']).to eq([ 'Nada para sugerir, ou as sugestões já estão sendo geradas' ])
+  end
+
+  it "doesn't change other profiles" do
+    other = create(:profile, locale: 'en')
+
+    put '/api/v1/settings/preferences', params: { preferences: { locale: 'pt-BR' } }
+
+    expect(other.reload.locale).to eq('en')
   end
 end

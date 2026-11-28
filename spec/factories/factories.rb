@@ -1,4 +1,18 @@
 FactoryBot.define do
+  factory :account do
+    sequence(:name) { |n| "Account #{n}" }
+  end
+
+  factory :profile do
+    account { Account.default }
+    sequence(:name) { |n| "Profile #{n}" }
+    locale { 'en' }
+
+    trait :with_password do
+      password { 'secret123' }
+    end
+  end
+
   factory :category do
     sequence(:name) { |n| "Category #{n}" }
     color_code { '#123456' }

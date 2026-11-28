@@ -1,6 +1,19 @@
-// Minimal seed data used by the specs (see db/seed_data/default_data.jsonc.example)
+// Minimal seed data used by the specs (same shape as db/seed_data/defaults.jsonc)
 {
-  "categories_with_keywords": {},
+  "categories": [
+    {
+      "name": "Ganhos",
+      "color_code": "#D4EFDF",
+      "subcategories": [{ "name": "SALARIO", "type": "gain", "color_code": "#A9DFBF", "keywords": ["SALARIO"] }]
+    },
+    {
+      "name": "Conforto",
+      "subcategories": [
+        { "name": "FOOD", "color_code": "#154360", "keywords": ["IFOOD", "PIZZA"] },
+        { "name": "UBER", "type": "expense", "keywords": [] }
+      ]
+    }
+  ],
   "debit_keywords": ["COMPRA", "PAGAMENTO"],
   "credit_keywords": ["RECEBIMENTO", "SALARIO"],
   "ignored_keywords": ["PAGTO_FATURA"]

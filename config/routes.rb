@@ -1,6 +1,9 @@
 Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
+      resources :profiles, only: %i[index create]
+      resource :profile, only: %i[show update], controller: "current_profile"
+      resource :session, only: %i[show create destroy]
       resources :assets
       resources :transactions, only: %i[index update] do
         member do

@@ -1,4 +1,5 @@
 class MonthlyStatement < ApplicationRecord
+  include ProfileOwned
   has_many :transactions, dependent: :destroy
   has_many :summary_lines, dependent: :destroy
 

@@ -1,55 +1,28 @@
-require 'json'
-include StringUtils
-include JsonUtils
+# Everything a fresh install needs, safe to run again (bin/rails db:seed):
+#
+# - the account (until accounts can sign in, the install has one);
+# - a "Default" profile when the account has none yet;
+# - the profiles named in $SEED_PROFILES (comma-separated, set in .env so names stay out of the
+#   public repo), created with the default categories;
+# - the "Outros" fallback in every profile, since imports need it.
+#
+# New profiles start with the categories, subcategories and keyword rules from
+# db/seed_data/defaults.jsonc (Profiles::DefaultData). Existing profiles are never reseeded, so
+# their own categories stay as the owner left them. Profiles are created without a password;
+# set one in the app (Settings → Profile).
+seed_profiles = ENV.fetch("SEED_PROFILES", "").split(",").map(&:strip).reject(&:empty?)
+default_profile = "Default"
 
-# Load and prepare data
-seed_data = load_initial_data
-CATEGORIES_WITH_KEYWORDS = seed_data['categories_with_keywords'] || {}
-DEBIT_KEYWORDS = (seed_data['debit_keywords'] || []).map { |k| default_string_parse(k) }
-CREDIT_KEYWORDS = (seed_data['credit_keywords'] || []).map { |k| default_string_parse(k) }
-IGNORED_KEYWORDS = (seed_data['ignored_keywords'] || []).map { |k| default_string_parse(k) }
-ASSETS = seed_data['assets'] || []
+account = Account.default
+names = account.profiles.exists? ? seed_profiles : [ default_profile, *seed_profiles ]
 
-raise 'Missing categories on initial data file' if CATEGORIES_WITH_KEYWORDS.empty?
-raise 'Missing Key word on initial data file' if DEBIT_KEYWORDS.empty? || CREDIT_KEYWORDS.empty?
+names.each do |name|
+  next if account.profiles.where("lower(name) = ?", name.downcase).exists?
 
-# Process data
-CATEGORIES_WITH_KEYWORDS.each do |category_key, subcategory_mappings|
-  parsed_category_name = default_string_parse(category_key)
-  category = Category.find_or_initialize_by(parsed_name: parsed_category_name)
-  category.name = category_key
-  category.save!
+  profile = Profiles::Setup.call(account: account, name: name, locale: "pt-BR")
+  raise "Could not create profile #{name}: #{profile.errors.full_messages.to_sentence}" unless profile.persisted?
 
-  next unless subcategory_mappings.is_a?(Array) && subcategory_mappings.first.is_a?(Hash)
-
-  subcategory_mappings.first.each do |subcategory_name, keywords|
-    parsed_subcategory_name = default_string_parse(subcategory_name)
-    subcategory = Subcategory.find_or_initialize_by(parsed_name: parsed_subcategory_name, category: category)
-    subcategory.name = subcategory_name
-    subcategory.save!
-
-    (keywords || []).compact.each do |keyword_name|
-      parsed_keyword = default_string_parse(keyword_name)
-      keyword = Keyword.find_or_initialize_by(parsed_name: parsed_keyword, subcategory: subcategory)
-      keyword.name = keyword_name
-      keyword.save!
-    rescue ActiveRecord::RecordInvalid => e
-      puts "⚠️ Skipping invalid keyword '#{keyword_name}': #{e.record.errors.full_messages.join(', ')}"
-    end
-  end
-rescue ActiveRecord::RecordInvalid => e
-  puts "⚠️ Skipping invalid subcategory/category: #{e.record.inspect}"
+  puts "Created profile #{name} with #{Current.set(profile: profile) { Subcategory.count }} subcategories"
 end
 
-ASSETS.each do |asset|
-  asset = Asset.find_or_initialize_by(description: a[:description], ticker: a[:ticker], asset_type: a[:asset_type])
-  asset.asset_type = a[:asset_type]
-  asset.current_value = a[:current_value]
-  asset.rating = a[:rating]
-  asset.quantity = a[:quantity]
-  asset.color_code = a[:color_code]
-  asset.save!
-  puts "Added asset #{asset.inspect}"
-rescue ActiveRecord::RecordInvalid => e
-  puts "⚠️ Skipping invalid asset: #{e.record.inspect}"
-end
+account.profiles.find_each { |profile| Current.set(profile: profile) { Profiles::DefaultData.ensure_fallback } }

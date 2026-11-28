@@ -3,6 +3,7 @@
 # The fingerprint identifies "the same change" across runs, so a pending one isn't duplicated
 # and a rejected one isn't proposed again unless the data changed a lot (Rules::Rejections).
 class RuleSuggestion < ApplicationRecord
+  include ProfileOwned
   include Normalizer
 
   ACTIONS = %w[create update delete].freeze

@@ -1,5 +1,6 @@
 # A charge alert the owner reviewed and marked as fine, so Alerts::Detector stops showing it.
 class AlertDismissal < ApplicationRecord
+  include ProfileOwned
   KINDS = %w[duplicate new_merchant amount_changed unusual_amount].freeze
 
   belongs_to :parsed_transaction, class_name: "Transaction"
