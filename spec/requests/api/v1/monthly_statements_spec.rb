@@ -37,10 +37,10 @@ RSpec.describe 'Api::V1::MonthlyStatements' do
     create(:transaction, monthly_statement: statement)
 
     get '/api/v1/monthly_statements'
-    expect(json).to contain_exactly(a_hash_including('id' => statement.id))
+    expect(json).to contain_exactly(a_hash_including('id' => statement.id, 'transactions_count' => 1))
 
     get "/api/v1/monthly_statements/#{statement.id}"
-    expect(json).to include('id' => statement.id, 'status' => 'unprocessed')
+    expect(json).to include('id' => statement.id, 'status' => 'unprocessed', 'transactions_count' => 1)
 
     expect { delete "/api/v1/monthly_statements/#{statement.id}" }.to change(Transaction, :count).by(-1)
   end

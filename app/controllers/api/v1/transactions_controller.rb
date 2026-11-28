@@ -1,7 +1,8 @@
 module Api::V1
   class TransactionsController < ApplicationController
     def index
-      result = Transactions::Search.call(params.permit(:month, :category_id, :subcategory_id, :transaction_type, :q, :unknown, :page, :per_page))
+      result = Transactions::Search.call(params.permit(:from, :to, :month, :monthly_statement_id, :category_id, :subcategory_id,
+                                                       :transaction_type, :q, :unknown, :sort, :page, :per_page))
 
       render json: {
         transactions: result.transactions.map { |t| TransactionPresenter.new(t) },
@@ -10,7 +11,12 @@ module Api::V1
           total_amount: result.total_amount,
           page: result.page,
           per_page: result.per_page,
-          months: result.months
+          months: result.months,
+          sort: result.sort,
+          from: result.from&.iso8601,
+          to: result.to&.iso8601,
+          first_date: result.first_date&.iso8601,
+          last_date: result.last_date&.iso8601
         }
       }
     end

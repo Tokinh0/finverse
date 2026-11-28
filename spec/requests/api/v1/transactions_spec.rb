@@ -16,6 +16,20 @@ RSpec.describe 'Api::V1::Transactions' do
       ))
       expect(json['meta']).to include('total_count' => 1, 'total_amount' => 12.5, 'page' => 1, 'per_page' => 10, 'months' => [ '2025-03' ])
     end
+
+    it 'filters by date range and statement, sorts, and reports what it used' do
+      statement = create(:monthly_statement)
+      small = create(:transaction, subcategory: food, amount: 5, transaction_date: Date.new(2025, 3, 2), monthly_statement: statement)
+      big = create(:transaction, subcategory: food, amount: 50, transaction_date: Date.new(2025, 3, 9), monthly_statement: statement)
+      create(:transaction, subcategory: food, amount: 99, transaction_date: Date.new(2025, 4, 1), monthly_statement: statement)
+      create(:transaction, subcategory: food, amount: 70, transaction_date: Date.new(2025, 3, 5))
+
+      get '/api/v1/transactions', params: { from: '2025-03-01', to: '2025-03-31', monthly_statement_id: statement.id, sort: 'amount_desc' }
+
+      expect(json['transactions'].pluck('id')).to eq([ big.id, small.id ])
+      expect(json['meta']).to include('sort' => 'amount_desc', 'from' => '2025-03-01', 'to' => '2025-03-31',
+                                      'first_date' => '2025-03-02', 'last_date' => '2025-04-01')
+    end
   end
 
   describe 'PATCH /api/v1/transactions/:id' do

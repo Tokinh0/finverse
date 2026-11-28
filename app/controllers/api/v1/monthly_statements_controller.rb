@@ -3,7 +3,8 @@ module Api::V1
     before_action :set_monthly_statement, only: %i[show destroy]
 
     def index
-      render json: MonthlyStatement.all.map { |s| MonthlyStatementPresenter.new(s) }
+      counts = Transaction.group(:monthly_statement_id).count
+      render json: MonthlyStatement.all.map { |s| MonthlyStatementPresenter.new(s, transactions_count: counts.fetch(s.id, 0)) }
     end
 
     def show
