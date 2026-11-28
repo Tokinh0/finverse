@@ -45,4 +45,79 @@ RSpec.describe Transactions::Search do
     expect(result.total_count).to eq(3)
     expect(search(per_page: 10_000).per_page).to eq(described_class::MAX_PER_PAGE)
   end
+
+  describe 'date range' do
+    it 'filters from..to, including both days' do
+      expect(search(from: '2025-02-10', to: '2025-02-28').transactions).to contain_exactly(ifood, uber)
+      expect(search(from: '2025-02-11', to: '2025-02-27').transactions).to be_empty
+    end
+
+    it 'leaves either end open' do
+      expect(search(from: '2025-02-11').transactions).to eq([ uber ])
+      expect(search(to: '2025-02-10').transactions).to contain_exactly(ifood, pay)
+    end
+
+    it 'swaps a reversed range and reports the range used' do
+      result = search(from: '2025-02-28', to: '2025-02-01')
+
+      expect(result.transactions).to contain_exactly(ifood, uber)
+      expect([ result.from, result.to ]).to eq([ Date.new(2025, 2, 1), Date.new(2025, 2, 28) ])
+    end
+
+    it 'prefers the range over a month, and ignores invalid dates' do
+      expect(search(month: '2025-01', from: '2025-02-28').transactions).to eq([ uber ])
+      expect(search(from: 'yesterday').total_count).to eq(3)
+    end
+
+    it 'reports the first and last transaction dates' do
+      expect(search(q: 'ifood')).to have_attributes(first_date: Date.new(2025, 1, 5), last_date: Date.new(2025, 2, 28))
+    end
+  end
+
+  it 'filters by statement' do
+    statement = create(:monthly_statement)
+    other = create(:transaction, subcategory: food, monthly_statement: statement)
+
+    expect(search(monthly_statement_id: statement.id).transactions).to eq([ other ])
+  end
+
+  describe 'sorting' do
+    def names(sort) = search(sort: sort).transactions.map(&:name)
+
+    it 'sorts by date, newest first by default' do
+      expect(search.sort).to eq('date_desc')
+      expect(names('date_asc')).to eq([ 'SALARIO', 'IFOOD Restaurante', 'UBER EATS' ])
+    end
+
+    it 'sorts by amount' do
+      expect(names('amount_desc')).to eq([ 'SALARIO', 'IFOOD Restaurante', 'UBER EATS' ])
+      expect(names('amount_asc')).to eq([ 'UBER EATS', 'IFOOD Restaurante', 'SALARIO' ])
+    end
+
+    it 'sorts by name, ignoring case' do
+      create(:transaction, subcategory: food, name: 'amazon', transaction_date: Date.new(2025, 1, 1))
+
+      expect(names('name_asc')).to eq([ 'amazon', 'IFOOD Restaurante', 'SALARIO', 'UBER EATS' ])
+      expect(names('name_desc').first).to eq('UBER EATS')
+    end
+
+    it 'sorts by category, then subcategory, newest first inside each' do
+      food.category.update!(name: 'Alimentacao')
+      salary.category.update!(name: 'Ganhos')
+
+      expect(names('category_asc')).to eq([ 'UBER EATS', 'IFOOD Restaurante', 'SALARIO' ])
+      expect(names('category_desc')).to eq([ 'SALARIO', 'UBER EATS', 'IFOOD Restaurante' ])
+    end
+
+    it 'sorts with a category filter too' do
+      expect(search(sort: 'category_asc', category_id: food.category_id).transactions).to eq([ uber, ifood ])
+    end
+
+    it 'falls back to the default for an unknown sort' do
+      result = search(sort: 'DROP TABLE')
+
+      expect(result.sort).to eq('date_desc')
+      expect(result.transactions).to eq([ uber, ifood, pay ])
+    end
+  end
 end

@@ -3,8 +3,11 @@
 class MonthlyStatementPresenter
   include Rails.application.routes.url_helpers
 
-  def initialize(statement)
+  # @param transactions_count [Integer, nil] pass it when presenting many statements (one query
+  #   for all); otherwise it is counted here.
+  def initialize(statement, transactions_count: nil)
     @statement = statement
+    @transactions_count = transactions_count
   end
 
   def as_json(*)
@@ -16,6 +19,7 @@ class MonthlyStatementPresenter
       last_transaction_date: @statement.last_transaction_date,
       statement_kind: @statement.statement_kind,
       status: @statement.status,
+      transactions_count: @transactions_count || @statement.transactions.count,
       url: @statement.file.attached? ? url_for(@statement.file) : nil
     }
   end
