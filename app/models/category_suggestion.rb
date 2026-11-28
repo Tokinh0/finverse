@@ -6,6 +6,7 @@
 # rejection: it says nothing about the subcategory), or superseded when the transaction was
 # categorized some other way first.
 class CategorySuggestion < ApplicationRecord
+  include ProfileOwned
   belongs_to :parsed_transaction, class_name: "Transaction"
   belongs_to :subcategory
   belongs_to :suggestion_run, optional: true

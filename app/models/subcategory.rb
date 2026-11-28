@@ -1,4 +1,5 @@
 class Subcategory < ApplicationRecord
+  include ProfileOwned
   include Normalizer
 
   FALLBACK_NAME = "OUTROS".freeze

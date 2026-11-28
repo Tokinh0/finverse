@@ -53,9 +53,20 @@ pt-BR:
     category_undeletable: "A categoria padrão \"Outros\" não pode ser excluída"
     subcategory_undeletable: "A subcategoria padrão \"Outros\" não pode ser excluída"
     cannot_move_transactions: "Não foi possível mover as transações desta subcategoria: %{error}"
+  records:
+    not_found: "Não encontrado"
+  auth:
+    unauthenticated: "Escolha um perfil para continuar"
+    profile_not_found: "Este perfil não existe"
+    wrong_password: "Senha incorreta"
   activerecord:
     errors:
       models:
+        profile:
+          too_many_profiles: "Uma conta pode ter no máximo %{count} perfis"
+          attributes:
+            current_password:
+              wrong: "está incorreta"
         keyword:
           attributes:
             max_amount:
@@ -80,7 +91,11 @@ pt-BR:
         transaction_type: "Tipo"
       app_setting:
         claude_model: "Modelo do Claude"
+      profile:
+        name: "Nome"
         locale: "Idioma"
+        password: "Senha"
+        current_password: "Senha atual"
   errors:
     format: "%{attribute} %{message}"
     messages:

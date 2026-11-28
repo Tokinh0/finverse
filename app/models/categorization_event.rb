@@ -2,6 +2,7 @@
 # suggestion. Repeated events for the same merchant are the signal for new keyword rules, and
 # events that override a keyword show which rules need fixing.
 class CategorizationEvent < ApplicationRecord
+  include ProfileOwned
   SOURCES = Transaction.categorization_sources.keys.freeze
 
   belongs_to :parsed_transaction, class_name: "Transaction"

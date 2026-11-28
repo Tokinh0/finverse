@@ -1,4 +1,5 @@
 class Asset < ApplicationRecord
+  include ProfileOwned
   ASSET_TYPES = {
     "renda_variavel" => "Renda Variável",
     "renda_fixa" => "Renda Fixa",

@@ -1,4 +1,5 @@
 class Category < ApplicationRecord
+  include ProfileOwned
   include Normalizer
 
   FALLBACK_NAME = "OUTROS".freeze
@@ -6,7 +7,7 @@ class Category < ApplicationRecord
   has_many :subcategories, dependent: :destroy
 
   validates :name, presence: true
-  validates :parsed_name, uniqueness: true
+  validates :parsed_name, uniqueness: { scope: :profile_id }
 
   before_destroy :prevent_fallback_destroy, prepend: true
 

@@ -1,5 +1,5 @@
 module Api::V1::Settings
-  # GET/PUT /settings/preferences: app-wide preferences. Today only the language
+  # GET/PUT /settings/preferences: the signed-in profile's preferences. Today only the language
   # ("en" or "pt-BR"), used by the UI, the API's messages and the reasons Claude writes.
   class PreferencesController < ApplicationController
     def show
@@ -8,18 +8,18 @@ module Api::V1::Settings
 
     # Body: { preferences: { locale } }
     def update
-      setting = AppSetting.current
-      if setting.update(params.require(:preferences).permit(:locale))
-        I18n.with_locale(setting.locale) { render json: present }
+      profile = Current.profile
+      if profile.update(params.require(:preferences).permit(:locale))
+        I18n.with_locale(profile.locale) { render json: present }
       else
-        render json: { errors: setting.errors.full_messages }, status: :unprocessable_content
+        render json: { errors: profile.errors.full_messages }, status: :unprocessable_content
       end
     end
 
     private
 
     def present
-      { locale: AppSetting.current.locale, available_locales: AppSetting::LOCALES }
+      { locale: Current.profile.locale, available_locales: Profile::LOCALES }
     end
   end
 end

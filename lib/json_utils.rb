@@ -1,13 +1,14 @@
 # lib/json_utils.rb
 
 module JsonUtils
+  DEFAULT_FILE = "defaults.jsonc".freeze
+
+  # Reads db/seed_data/$DEFAULT_DATA_FILE_PATHNAME (defaults.jsonc when unset): JSON with
+  # `//` line comments.
   def load_initial_data
-    content = File.read(Rails.root.join("db", "seed_data", ENV["DEFAULT_DATA_FILE_PATHNAME"]))
-    json = content.lines.reject { |line| line.strip.start_with?("//") }.join
-    JSON.parse(json)
-  rescue JSON::ParserError => e
-    puts "❌ Failed to parse JSON: #{e.message}"
-    exit(1)
+    name = ENV["DEFAULT_DATA_FILE_PATHNAME"].presence || DEFAULT_FILE
+    content = File.read(Rails.root.join("db", "seed_data", name))
+    JSON.parse(content.lines.reject { |line| line.strip.start_with?("//") }.join)
   end
 
   module_function :load_initial_data

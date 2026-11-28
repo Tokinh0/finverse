@@ -54,9 +54,20 @@ en:
     category_undeletable: "The \"Outros\" fallback category cannot be deleted"
     subcategory_undeletable: "The \"Outros\" fallback subcategory cannot be deleted"
     cannot_move_transactions: "Cannot move this subcategory's transactions: %{error}"
+  records:
+    not_found: "Not found"
+  auth:
+    unauthenticated: "Pick a profile to continue"
+    profile_not_found: "This profile doesn't exist"
+    wrong_password: "Wrong password"
   activerecord:
     errors:
       models:
+        profile:
+          too_many_profiles: "An account can have at most %{count} profiles"
+          attributes:
+            current_password:
+              wrong: "is wrong"
         keyword:
           attributes:
             max_amount:

@@ -1,4 +1,5 @@
 class SummaryLine < ApplicationRecord
+  include ProfileOwned
   belongs_to :monthly_statement
   belongs_to :parsed_transaction, optional: true, class_name: "Transaction"
 

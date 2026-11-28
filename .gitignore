@@ -21,4 +21,5 @@
 # Ignore master key for decrypting credentials and more.
 /config/master.key
 /db/seed_data/*.jsonc
+!/db/seed_data/defaults.jsonc
 .env

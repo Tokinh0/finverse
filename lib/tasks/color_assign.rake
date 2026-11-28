@@ -26,19 +26,23 @@ namespace :db do
       "#2E4053"
     ]
 
-    Category.find_each do |category|
-      theme = income_names.include?(category.name.downcase) ? :income : :expense
-      palette = theme == :income ? income_palette : expense_palette
+    Profile.find_each do |profile|
+      Current.set(profile: profile) do
+        Category.find_each do |category|
+          theme = income_names.include?(category.name.downcase) ? :income : :expense
+          palette = theme == :income ? income_palette : expense_palette
 
-      # build the ordered list: first the category itself, then its subcategories
-      items = [ category ] + category.subcategories.to_a
+          # build the ordered list: first the category itself, then its subcategories
+          items = [ category ] + category.subcategories.to_a
 
-      items.each_with_index do |item, idx|
-        color = palette[idx % palette.length]
-        item.update!(color_code: color)
+          items.each_with_index do |item, idx|
+            color = palette[idx % palette.length]
+            item.update!(color_code: color)
+          end
+
+          puts "→ #{profile.name} #{theme.to_s.upcase}: assigned #{items.size} colors from #{palette.first}(…) to “#{category.name}” and its #{category.subcategories.count} subcategories"
+        end
       end
-
-      puts "→ #{theme.to_s.upcase}: assigned #{items.size} colors from #{palette.first}(…) to “#{category.name}” and its #{category.subcategories.count} subcategories"
     end
 
     puts "✅ Done assigning color_codes!"

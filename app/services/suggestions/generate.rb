@@ -13,9 +13,9 @@ module Suggestions
   class Generate
     MAX_GROUPS_PER_REQUEST = 150
 
-    # Runs in the language set in Settings, so messages and reasons match the UI.
+    # Runs in the profile's language, so messages and reasons match its UI.
     def self.call(run)
-      I18n.with_locale(AppSetting.current.locale) { new(run).call }
+      I18n.with_locale(run.profile.locale) { new(run).call }
     end
 
     def initialize(run)
