@@ -55,6 +55,8 @@ pt-BR:
     cannot_move_transactions: "Não foi possível mover as transações desta subcategoria: %{error}"
   records:
     not_found: "Não encontrado"
+  market:
+    token_blank: "Cole um token do brapi.dev"
   auth:
     unauthenticated: "Escolha um perfil para continuar"
     profile_not_found: "Este perfil não existe"

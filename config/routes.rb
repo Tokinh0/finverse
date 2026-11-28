@@ -29,6 +29,12 @@ Rails.application.routes.draw do
         get :categorization_progress
       end
       get :portfolio_dashboard, to: "portfolio_dashboard#index"
+      resource :market, only: :show, controller: "market"
+      namespace :market do
+        resources :assets, only: :index do
+          collection { post :apply }
+        end
+      end
       get "suggestions/summary", to: "suggestions#summary"
       resources :suggestion_runs, only: %i[index create]
       resources :rule_suggestions, only: :index do
@@ -48,6 +54,7 @@ Rails.application.routes.draw do
       namespace :settings do
         resource :claude, only: %i[show update destroy], controller: "claude"
         resource :preferences, only: %i[show update]
+        resource :market, only: %i[show update destroy], controller: "market"
       end
     end
   end

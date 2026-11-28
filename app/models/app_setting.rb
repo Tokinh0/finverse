@@ -1,4 +1,4 @@
-# The settings an account's profiles share (the Claude key and model). Use `AppSetting.current`
+# The settings an account's profiles share (the Claude key and model, the brapi.dev token). Use `AppSetting.current`
 # for the current profile's account. Each profile's language lives on Profile.
 #
 # The Claude API key is encrypted at rest (Active Record Encryption, keys in the Rails
@@ -9,6 +9,7 @@ class AppSetting < ApplicationRecord
   belongs_to :account
 
   encrypts :claude_api_key
+  encrypts :brapi_token
 
   validates :claude_model, format: { with: /\Aclaude-[a-z0-9.-]+\z/ }, allow_blank: true
 
@@ -33,8 +34,15 @@ class AppSetting < ApplicationRecord
     "#{claude_api_key.first(7)}…#{claude_api_key.last(4)}"
   end
 
-  # Keeps `inspect` and error reports from printing the decrypted key.
+  def masked_brapi_token
+    return nil if brapi_token.blank?
+
+    "…#{brapi_token.last(4)}"
+  end
+
+  # Keeps `inspect` and error reports from printing the decrypted secrets.
   def inspect
     super.sub(/claude_api_key: "[^"]*"/, 'claude_api_key: "[FILTERED]"')
+         .sub(/brapi_token: "[^"]*"/, 'brapi_token: "[FILTERED]"')
   end
 end

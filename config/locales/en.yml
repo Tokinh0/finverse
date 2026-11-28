@@ -56,6 +56,8 @@ en:
     cannot_move_transactions: "Cannot move this subcategory's transactions: %{error}"
   records:
     not_found: "Not found"
+  market:
+    token_blank: "Paste a brapi.dev token"
   auth:
     unauthenticated: "Pick a profile to continue"
     profile_not_found: "This profile doesn't exist"
