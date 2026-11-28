@@ -1,0 +1,188 @@
+#!/usr/bin/env bash
+# Paired git worktrees of the API (this repo) and the frontend (../finverse-front), so features
+# or Claude sessions can run side by side. Each pair gets its own branch, its own ports and its
+# own Docker stack and database.
+#
+#   bin/worktree add <name> [--from <ref>] [--no-start]
+#       Creates ../finverse-<name> and ../finverse-front-<name> on branch <name> (from origin/main
+#       unless --from says otherwise). Copies the gitignored .env and config/master.key, picks
+#       free ports (API 3000+n, Postgres 5432+n, Vite 5173+n), runs npm ci, and starts the API
+#       stack with its databases prepared and seeded (unless --no-start).
+#   bin/worktree list
+#   bin/worktree remove <name>
+#       Stops the pair's containers, deletes its database volume and removes both worktrees.
+#       The branches stay; delete them with `git branch -d <name>` once merged.
+#
+# Run it from the main API folder or from any of its worktrees.
+set -euo pipefail
+
+die() { echo "bin/worktree: $*" >&2; exit 1; }
+say() { echo "==> $*"; }
+
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# The first entry of `git worktree list` is always the main checkout.
+api_main=$(git -C "$script_dir/.." worktree list --porcelain | awk '$1 == "worktree" { print $2; exit }')
+root=$(dirname "$api_main")
+front_main="$root/finverse-front"
+
+usage() { sed -n '2,17p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
+
+# A port is free when nothing on this machine answers on it.
+port_free() { ! (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
+
+# Ports already promised to other worktrees, running or not.
+ports_in_use() { cat "$root"/finverse-*/.env 2>/dev/null | sed -n 's/^\(API_PORT\|DB_PORT\)=//p'; }
+
+pick_slot() {
+  local used n
+  used=$(ports_in_use)
+  for n in $(seq 1 30); do
+    if ! grep -qx -e "$((3000 + n))" -e "$((5432 + n))" <<<"$used" &&
+      port_free $((3000 + n)) && port_free $((5432 + n)) && port_free $((5173 + n)); then
+      echo "$n"
+      return
+    fi
+  done
+  die "no free ports between 3001 and 3030"
+}
+
+# Adds a worktree on <branch>: a new branch from <ref>, or the existing branch.
+add_worktree() {
+  local repo=$1 dir=$2 branch=$3 ref=$4
+  [[ -e $dir ]] && die "$dir already exists"
+  if git -C "$repo" show-ref --verify --quiet "refs/heads/$branch"; then
+    git -C "$repo" worktree add "$dir" "$branch"
+  else
+    git -C "$repo" worktree add -b "$branch" "$dir" "$ref"
+  fi
+}
+
+# Sets KEY=value in an env file, replacing an earlier value.
+set_env() {
+  local file=$1 key=$2 value=$3
+  touch "$file"
+  sed -i "/^$key[[:space:]]*=/d" "$file"
+  [[ -s $file && $(tail -c1 "$file") != "" ]] && echo >>"$file"
+  echo "$key=$value" >>"$file"
+}
+
+cmd_add() {
+  local name="" ref="origin/main" start=1
+  while (($#)); do
+    case $1 in
+      --from) ref=${2:?--from needs a ref}; shift 2 ;;
+      --no-start) start=0; shift ;;
+      -h | --help) usage ;;
+      -*) die "unknown option $1" ;;
+      *) [[ -z $name ]] || die "one name only"; name=$1; shift ;;
+    esac
+  done
+  [[ $name =~ ^[a-z0-9][a-z0-9._-]*$ ]] || die "name it like a branch: lowercase letters, digits, . _ - (got '$name')"
+  [[ $name != front* ]] || die "names can't start with 'front' (finverse-front-* are the frontend folders)"
+
+  local api_dir="$root/finverse-$name" front_dir="$root/finverse-front-$name"
+  local has_front=0
+  [[ -d $front_main/.git || -f $front_main/.git ]] && has_front=1
+
+  if [[ $ref == origin/* ]]; then
+    say "Fetching origin"
+    git -C "$api_main" fetch -q origin || echo "    (fetch failed; using the origin refs already here)"
+    ((has_front)) && { git -C "$front_main" fetch -q origin || echo "    (fetch failed; using the origin refs already here)"; }
+  fi
+
+  local n api_port db_port front_port
+  n=$(pick_slot)
+  api_port=$((3000 + n)) db_port=$((5432 + n)) front_port=$((5173 + n))
+
+  say "API worktree: $api_dir (branch $name)"
+  add_worktree "$api_main" "$api_dir" "$name" "$ref"
+  [[ -f $api_main/.env ]] && cp "$api_main/.env" "$api_dir/.env"
+  [[ -f $api_main/config/master.key ]] && cp "$api_main/config/master.key" "$api_dir/config/master.key"
+  set_env "$api_dir/.env" API_PORT "$api_port"
+  set_env "$api_dir/.env" DB_PORT "$db_port"
+
+  if ((has_front)); then
+    say "Frontend worktree: $front_dir (branch $name)"
+    add_worktree "$front_main" "$front_dir" "$name" "$ref"
+    # .env is tracked in the frontend; .env.local is gitignored and wins over it.
+    set_env "$front_dir/.env.local" VITE_FINVERSE_API_URL "http://localhost:$api_port"
+    set_env "$front_dir/.env.local" FRONT_PORT "$front_port"
+    say "Installing frontend packages"
+    (cd "$front_dir" && npm ci --no-audit --no-fund --loglevel=error)
+  fi
+
+  if ((start)); then
+    say "Starting the API stack (first run builds the image)"
+    (cd "$api_dir" && docker compose up -d --build &&
+      docker compose exec -T api bin/rails db:prepare &&
+      docker compose exec -T -e RAILS_ENV=test api bin/rails db:create db:schema:load) # no seeds: specs start empty
+  fi
+
+  cat <<EOF
+
+Ready: "$name"
+  API       $api_dir
+            http://localhost:$api_port  (Postgres on $db_port, its own database)
+            $( ((start)) && echo "running" || echo "start it: cd $api_dir && docker compose up -d && docker compose exec api bin/rails db:prepare")
+EOF
+  if ((has_front)); then
+    cat <<EOF
+  Frontend  $front_dir
+            cd $front_dir && npm run dev -- --port $front_port
+            then open http://localhost:$front_port
+EOF
+  fi
+  echo "  Remove    bin/worktree remove $name"
+}
+
+cmd_list() {
+  local dir name api_port
+  printf '%-24s %-28s %-6s %s\n' NAME BRANCH API FOLDERS
+  for dir in "$root"/finverse-*; do
+    [[ -d $dir && $dir != "$front_main" && $(basename "$dir") != finverse-front-* ]] || continue
+    [[ -e $dir/.git ]] || continue
+    name=${dir##*/finverse-}
+    api_port=$(sed -n 's/^API_PORT=//p' "$dir/.env" 2>/dev/null)
+    printf '%-24s %-28s %-6s %s\n' "$name" "$(git -C "$dir" branch --show-current)" "${api_port:-?}" \
+      "finverse-$name$([[ -d $root/finverse-front-$name ]] && echo " + finverse-front-$name")"
+  done
+}
+
+cmd_remove() {
+  local name=${1:-}
+  [[ -n $name ]] || usage 1
+  local api_dir="$root/finverse-$name" front_dir="$root/finverse-front-$name"
+  [[ $name != front* ]] || die "names can't start with 'front'"
+  [[ -d $api_dir || -d $front_dir ]] || die "no worktree named '$name'"
+
+  # Check both folders before deleting anything: uncommitted changes or new files stop it (the
+  # copied .env, master.key and node_modules are gitignored and don't count).
+  local dir
+  for dir in "$api_dir" "$front_dir"; do
+    [[ -d $dir && -n $(git -C "$dir" status --porcelain) ]] && die "commit or discard the changes in $dir first"
+  done
+
+  if [[ -d $api_dir ]]; then
+    say "Stopping $name's containers and deleting its database"
+    (
+      cd "$api_dir"
+      # The containers write tmp/ and log/ as root; hand them back so the folder can be deleted.
+      docker compose run --rm --no-deps -T api chown -R "$(id -u):$(id -g)" /app >/dev/null 2>&1 ||
+        echo "    (couldn't reset file owners; removing the folder may fail)"
+      docker compose down -v --rmi local --remove-orphans
+    ) || echo "    (docker compose down failed; continuing)"
+    git -C "$api_main" worktree remove "$api_dir"
+  fi
+  if [[ -d $front_dir ]]; then
+    git -C "$front_main" worktree remove "$front_dir"
+  fi
+  say "Removed. The branch '$name' is kept; delete it with git branch -d $name once merged."
+}
+
+case ${1:-} in
+  add) shift; cmd_add "$@" ;;
+  list) cmd_list ;;
+  remove) shift; cmd_remove "$@" ;;
+  -h | --help | help) usage ;;
+  *) usage 1 ;;
+esac

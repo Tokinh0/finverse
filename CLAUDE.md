@@ -42,6 +42,16 @@ docker compose exec api bundle exec rspec spec/services/categorization_spec.rb:1
 ```
 `spec/rails_helper.rb` always rewrites `DATABASE_URL` to the `finverse_test` database, and it aborts unless the database name ends in `_test`. Create the test DB once with `docker compose exec -e RAILS_ENV=test api bin/rails db:create db:schema:load`. Compose's `DATABASE_URL` has no database name, so `config/database.yml` chooses one per environment. Don't add a database name to it, because then `RAILS_ENV=test` tasks would hit the development DB.
 
+### Worktrees
+
+`bin/worktree` runs a feature (or a Claude session) beside the main folders. Each pair gets its own branch, ports and database.
+```bash
+bin/worktree add <name> [--from <ref>] [--no-start]  # ../finverse-<name> + ../finverse-front-<name>, branch <name> from origin/main
+bin/worktree list
+bin/worktree remove <name>                           # stops its stack, deletes its DB volume and image, removes both folders
+```
+`add` copies the gitignored `.env` and `config/master.key`, picks the next free ports (API 3000+n, Postgres 5432+n, Vite 5173+n) and writes `API_PORT`/`DB_PORT` into the worktree's `.env`; `docker-compose.yml` reads them (defaults 3000/5432). The frontend worktree gets `VITE_FINVERSE_API_URL` and `FRONT_PORT` in its `.env.local` (its `.env` is tracked). The API stack starts with a seeded dev DB (Default and Amanda, not your real data) and an empty test DB. `remove` refuses while either folder has uncommitted changes or new files, and keeps the branch.
+
 ## Architecture
 
 **Profiles and sessions:** an `Account` (the future email login; for now `Account.default`, the install's only one) has up to `Account::MAX_PROFILES` `Profile`s: a name, an optional password (`has_secure_password`, bcrypt), and the profile's `locale`. Every data model includes `ProfileOwned`, whose `default_scope` limits queries to `Current.profile`, fills `profile_id` on new records, and rejects links to another profile's records. Without a current profile, queries raise `ProfileOwned::MissingProfile` (on purpose: data never mixes). So outside a request set it first: `Current.profile = Profile.find_by(name: "...")` in a console, `Current.set(profile: p) { ... }` in tasks and seeds. `GenerateSuggestionsJob` loads its run `unscoped` and runs as the run's profile. A new table with data needs a `profile_id` and `include ProfileOwned` (`spec/models/profile_owned_spec.rb` checks every table with a `profile_id`), and uniqueness validations need `scope: :profile_id` where the parent isn't already per profile, because they ignore default scopes. `ApplicationController` authenticates every request with `Authorization: Bearer <token>` (`ProfileSession`: only a SHA-256 digest is stored; ends on sign-out or after 30 idle days) and answers 401 otherwise; another profile's record ids answer 404. Public endpoints (the picker): `GET/POST /profiles` (new profiles get the default data) and `POST /session` (`profile_id`, `password`). Signed in: `GET/DELETE /session`, `GET/PATCH /profile` (`Profiles::Update`: changing or removing a password needs `current_password` and signs out the profile's other sessions).

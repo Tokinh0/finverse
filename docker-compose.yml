@@ -7,7 +7,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports:
-      - '5432:5432'
+      - '${DB_PORT:-5432}:5432' # API_PORT / DB_PORT come from .env; bin/worktree sets them per worktree
 
   redis:
     image: redis:7
@@ -19,7 +19,7 @@ services:
     volumes:
       - .:/app
     ports:
-      - "3000:3000"
+      - "${API_PORT:-3000}:3000"
     depends_on:
       - db
       - redis
