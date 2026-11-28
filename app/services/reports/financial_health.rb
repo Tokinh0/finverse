@@ -9,6 +9,7 @@ module Reports
   # - year:       a calendar year month by month against the previous year, category totals,
   #               top merchants and the best and worst months. Totals of a year in progress are
   #               compared with the same months of the previous year.
+  # - savings:    where the owner could spend less (Reports::SavingsOpportunities)
   #
   # Definitions: income = credits in "gain" subcategories; spending = debits minus refunds in
   # "expense" subcategories; invested = debits minus redemptions in "investment" subcategories.
@@ -43,7 +44,8 @@ module Reports
         summary: { current: totals(in_range(current_range)), previous: totals(in_range(previous_range)) },
         categories: category_breakdown,
         trends: trends,
-        year: year_summary
+        year: year_summary,
+        savings: SavingsOpportunities.call(as_of: @as_of, period: @period)
       }
     end
 

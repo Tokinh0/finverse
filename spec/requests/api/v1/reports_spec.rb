@@ -20,7 +20,8 @@ RSpec.describe 'Api::V1::Reports' do
     get "/api/v1/reports/financial_health", params: { period: 1 }
 
     expect(json).to include("as_of" => "2025-03", "period_months" => 1)
-    expect(json.keys).to include("summary", "categories", "trends", "year")
+    expect(json.keys).to include("summary", "categories", "trends", "year", "savings")
+    expect(json["savings"].keys).to include("summary", "opportunities", "subscriptions")
   end
 
   describe 'GET /reports/categorization_progress' do
